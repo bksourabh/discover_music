@@ -160,7 +160,12 @@ npm run android
 
 ## Deploying to GitHub Pages
 
-The web version can be automatically deployed to GitHub Pages.
+The web demo version (which skips login and uses a mock user) can be automatically deployed to GitHub Pages.
+
+**Note:** The deployed version is the demo mode, which means:
+- ✅ No authentication required - uses a mock user automatically
+- ✅ Full functionality - all features work (note generation, audio playback, saving sequences)
+- ✅ Perfect for showcasing the app without requiring users to sign in
 
 ### Automatic Deployment
 
@@ -173,7 +178,7 @@ The web version can be automatically deployed to GitHub Pages.
 2. **Push to main/master branch:**
    ```bash
    git add .
-   git commit -m "Deploy to GitHub Pages"
+   git commit -m "Deploy demo to GitHub Pages"
    git push origin main
    ```
 
@@ -187,8 +192,8 @@ The web version can be automatically deployed to GitHub Pages.
 ### Manual Deployment
 
 ```bash
-# Build the web app
-npm run web:build
+# Build the web demo app
+npm run web:demo:build
 
 # Deploy using gh-pages (optional)
 npx gh-pages -d web-build
