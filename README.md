@@ -169,25 +169,36 @@ The web demo version (which skips login and uses a mock user) can be automatical
 
 ### Automatic Deployment
 
-1. **Enable GitHub Pages in your repository:**
-   - Go to your repository on GitHub
-   - Navigate to **Settings** → **Pages**
-   - Under **Source**, select **GitHub Actions**
-   - Save the settings
+**⚠️ IMPORTANT: You must enable GitHub Pages FIRST before the workflow will work!**
 
-2. **Push to main/master branch:**
+1. **Enable GitHub Pages in your repository (REQUIRED FIRST STEP):**
+   - Go to your repository on GitHub (e.g., `https://github.com/your-username/discover_music`)
+   - Click on **Settings** (top menu bar)
+   - Scroll down to **Pages** in the left sidebar (under "Code and automation")
+   - Under **Source**, select **GitHub Actions** (NOT "Deploy from a branch")
+   - Click **Save**
+
+2. **Verify Actions Permissions:**
+   - Still in **Settings**, go to **Actions** → **General**
+   - Under "Workflow permissions", select:
+     - ✅ **Read and write permissions**
+   - Click **Save**
+
+3. **Push to main/master branch:**
    ```bash
    git add .
    git commit -m "Deploy demo to GitHub Pages"
    git push origin main
    ```
 
-3. **Monitor the deployment:**
+4. **Monitor the deployment:**
    - Go to the **Actions** tab in your GitHub repository
    - You'll see a workflow run called "Deploy to GitHub Pages"
    - Wait for it to complete (usually 2-3 minutes)
    - Once complete, your site will be available at:
      `https://[your-username].github.io/[repository-name]/`
+
+**Troubleshooting:** If you get "Get Pages site failed" error, see `GITHUB_PAGES_SETUP.md` for detailed troubleshooting steps.
 
 ### Manual Deployment
 

@@ -1,6 +1,7 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const webpack = require('webpack');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 // Determine publicPath for GitHub Pages
 // If GITHUB_REPOSITORY is set (in CI), extract repo name and use it as base path
@@ -111,6 +112,14 @@ module.exports = {
     new HtmlWebpackPlugin({
       template: './web/index.html',
       filename: 'index.html',
+    }),
+    new CopyWebpackPlugin({
+      patterns: [
+        {
+          from: path.resolve(__dirname, 'piano-mp3'),
+          to: path.resolve(__dirname, 'web-build', 'piano-mp3'),
+        },
+      ],
     }),
   ],
   devServer: {

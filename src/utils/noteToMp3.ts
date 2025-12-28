@@ -45,16 +45,33 @@ export const getMp3Filename = (note: PianoNote): string => {
 };
 
 /**
+ * Get the base path for web assets (handles GitHub Pages subdirectory)
+ */
+const getWebBasePath = (): string => {
+  if (typeof window === 'undefined') {
+    return '/';
+  }
+  // Get the pathname and extract the base path
+  // For GitHub Pages: /repository-name/ -> /repository-name/
+  // For root domain: / -> /
+  const pathname = window.location.pathname;
+  // Remove index.html if present
+  const basePath = pathname.replace(/\/index\.html$/, '').replace(/\/$/, '') || '/';
+  return basePath === '/' ? '/' : `${basePath}/`;
+};
+
+/**
  * Get the path to the MP3 file for a note
  * For React Native, this returns the filename (files need to be in res/raw or bundled)
- * For Web, this returns the public path
+ * For Web, this returns the public path (handles GitHub Pages subdirectory)
  */
 export const getMp3Path = (note: PianoNote, isWeb: boolean = false): string => {
   const filename = getMp3Filename(note);
   
   if (isWeb) {
-    // For web, serve from public/piano-mp3 or similar
-    return `/piano-mp3/${filename}`;
+    // For web, use base path to handle GitHub Pages subdirectory
+    const basePath = getWebBasePath();
+    return `${basePath}piano-mp3/${filename}`;
   }
   
   // For React Native (Android), react-native-sound will look in res/raw
