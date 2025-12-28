@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  TextInput,
   ScrollView,
   Alert,
   ActivityIndicator,
@@ -15,6 +14,9 @@ import {
   stringToNotes,
   PianoNote,
 } from '../utils/pianoNotes';
+import PianoKeyboard from '../components/PianoKeyboard';
+import Dropdown from '../components/Dropdown';
+import TimelineView from '../components/TimelineView';
 // Use web-compatible modules for web, native for mobile
 // @ts-ignore - window is available in web environments
 const isWeb = typeof window !== 'undefined' && !window.navigator.userAgent.includes('ReactNative');
@@ -59,12 +61,25 @@ interface MainScreenProps {
 }
 
 const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
+  // Generate note length options: 0.1 to 2.0 in 0.1 increments
+  const noteLengthOptions = Array.from({length: 20}, (_, i) => {
+    const value = (0.1 + i * 0.1).toFixed(1);
+    return {label: `${value}s`, value};
+  });
+
+  // Generate total length options: 5 to 15 seconds
+  const totalLengthOptions = Array.from({length: 11}, (_, i) => {
+    const value = (5 + i).toString();
+    return {label: `${value}s`, value};
+  });
+
   const [noteLength, setNoteLength] = useState<string>('0.5');
   const [totalLength, setTotalLength] = useState<string>('15');
   const [currentNotes, setCurrentNotes] = useState<PianoNote[]>([]);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [recentSequences, setRecentSequences] = useState<NoteSequence[]>([]);
+  const [highlightedNote, setHighlightedNote] = useState<PianoNote | null>(null);
 
   useEffect(() => {
     loadRecentSequences();
@@ -83,6 +98,8 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
     const noteLengthNum = parseFloat(noteLength);
     const totalLengthNum = parseFloat(totalLength);
 
+    // Validation is simplified since dropdown ensures valid values
+    // But we keep these checks as a safety measure
     if (isNaN(noteLengthNum) || noteLengthNum <= 0) {
       Alert.alert('Invalid Input', 'Note length must be a positive number');
       return;
@@ -119,14 +136,22 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
 
       // Auto-play the generated sequence
       setIsPlaying(true);
+      setHighlightedNote(null);
       if (isWeb) {
         try {
           const {playNoteSequence} = require('../utils/audioPlayer.web');
-          await playNoteSequence(notes, noteLengthNum);
+          await playNoteSequence(
+            notes,
+            noteLengthNum,
+            (note: PianoNote) => setHighlightedNote(note),
+            () => {} // onNoteEnd - no action needed
+          );
           setIsPlaying(false);
+          setHighlightedNote(null);
         } catch (error) {
           console.error('Error playing notes:', error);
           setIsPlaying(false);
+          setHighlightedNote(null);
         }
       }
     } catch (error) {
@@ -144,17 +169,25 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
     }
 
     setIsPlaying(true);
+    setHighlightedNote(null);
     stopAllSounds();
     
     // For web, play directly using Web Audio API
     if (isWeb) {
       try {
         const {playNoteSequence} = require('../utils/audioPlayer.web');
-        await playNoteSequence(currentNotes, parseFloat(noteLength));
+        await playNoteSequence(
+          currentNotes,
+          parseFloat(noteLength),
+          (note: PianoNote) => setHighlightedNote(note),
+          () => {} // onNoteEnd - no action needed
+        );
         setIsPlaying(false);
+        setHighlightedNote(null);
       } catch (error) {
         console.error('Error playing notes:', error);
         setIsPlaying(false);
+        setHighlightedNote(null);
       }
     }
     // For native, playback is handled by AudioPlayer component
@@ -162,6 +195,7 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
 
   const handlePlayComplete = () => {
     setIsPlaying(false);
+    setHighlightedNote(null);
   };
 
   const handleSave = async () => {
@@ -198,32 +232,56 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
     }
   };
 
+  const handleKeyPress = async (note: PianoNote) => {
+    try {
+      // Highlight the pressed key
+      setHighlightedNote(note);
+      
+      // Play the note for a short duration (0.5 seconds)
+      const noteDuration = 0.5;
+      
+      if (isWeb) {
+        const {playNote} = require('../utils/audioPlayer.web');
+        await playNote(note, noteDuration);
+      } else {
+        const {playNote} = require('../utils/audioPlayer');
+        await playNote(note, noteDuration);
+      }
+      
+      // Clear highlight after note finishes playing
+      setHighlightedNote(null);
+    } catch (error) {
+      console.error('Error playing key:', error);
+      setHighlightedNote(null);
+    }
+  };
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.title}>Piano Note Generator</Text>
       <Text style={styles.userInfo}>Welcome, {user.name}!</Text>
 
-      <View style={styles.inputContainer}>
-        <Text style={styles.label}>Note Length (seconds)</Text>
-        <TextInput
-          style={styles.input}
-          value={noteLength}
-          onChangeText={setNoteLength}
-          keyboardType="numeric"
-          placeholder="0.5"
-        />
-      </View>
+      <Dropdown
+        label="Note Length (seconds)"
+        value={noteLength}
+        options={noteLengthOptions}
+        onValueChange={setNoteLength}
+      />
 
-      <View style={styles.inputContainer}>
-        <Text style={styles.label}>Total Length (seconds)</Text>
-        <TextInput
-          style={styles.input}
-          value={totalLength}
-          onChangeText={setTotalLength}
-          keyboardType="numeric"
-          placeholder="15"
-        />
-      </View>
+      <Dropdown
+        label="Total Length (seconds)"
+        value={totalLength}
+        options={totalLengthOptions}
+        onValueChange={setTotalLength}
+      />
+
+      {/* Piano Keyboard - Full 88-key range (A0 to C8) */}
+      <PianoKeyboard
+        highlightedNote={highlightedNote}
+        startOctave={0}
+        endOctave={8}
+        onKeyPress={handleKeyPress}
+      />
 
       <TouchableOpacity
         style={[styles.button, styles.generateButton, (isGenerating || isPlaying) && styles.buttonDisabled]}
@@ -237,15 +295,23 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
       </TouchableOpacity>
 
       {currentNotes.length > 0 && (
-        <View style={styles.infoContainer}>
-          <Text style={styles.infoText}>
-            Generated {currentNotes.length} notes
-          </Text>
-          <Text style={styles.infoText}>
-            Notes: {currentNotes.slice(0, 5).map(n => n.name).join(', ')}
-            {currentNotes.length > 5 ? '...' : ''}
-          </Text>
-        </View>
+        <>
+          <View style={styles.infoContainer}>
+            <Text style={styles.infoText}>
+              Generated {currentNotes.length} notes
+            </Text>
+            <Text style={styles.infoText}>
+              Notes: {currentNotes.slice(0, 5).map(n => n.name).join(', ')}
+              {currentNotes.length > 5 ? '...' : ''}
+            </Text>
+          </View>
+          <TimelineView
+            notes={currentNotes}
+            noteLength={parseFloat(noteLength)}
+            totalLength={parseFloat(totalLength)}
+            highlightedNote={highlightedNote}
+          />
+        </>
       )}
 
       <TouchableOpacity
@@ -272,6 +338,8 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
           notes={currentNotes}
           noteLength={parseFloat(noteLength)}
           onPlayComplete={handlePlayComplete}
+          onNoteStart={(note: PianoNote) => setHighlightedNote(note)}
+          onNoteEnd={() => {}}
         />
       )}
 
@@ -325,23 +393,6 @@ const styles = StyleSheet.create({
     color: '#666',
     marginBottom: 30,
     textAlign: 'center',
-  },
-  inputContainer: {
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 8,
-    color: '#333',
-  },
-  input: {
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
   },
   button: {
     padding: 15,

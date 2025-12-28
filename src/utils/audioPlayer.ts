@@ -120,14 +120,22 @@ export const playNote = async (note: PianoNote, duration: number): Promise<void>
  */
 export const playNoteSequence = async (
   notes: PianoNote[],
-  noteLength: number
+  noteLength: number,
+  onNoteStart?: (note: PianoNote) => void,
+  onNoteEnd?: (note: PianoNote) => void
 ): Promise<void> => {
   // Stop any currently playing sounds
   stopAllSounds();
   
   // Play notes sequentially
   for (const note of notes) {
+    if (onNoteStart) {
+      onNoteStart(note);
+    }
     await playNote(note, noteLength);
+    if (onNoteEnd) {
+      onNoteEnd(note);
+    }
   }
 };
 

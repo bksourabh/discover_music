@@ -6,13 +6,21 @@ interface AudioPlayerProps {
   notes: PianoNote[];
   noteLength: number;
   onPlayComplete?: () => void;
+  onNoteStart?: (note: PianoNote) => void;
+  onNoteEnd?: (note: PianoNote) => void;
 }
 
 /**
  * AudioPlayer component using react-native-sound with MP3 files
  * This component plays actual piano note MP3 files from the piano-mp3 folder
  */
-const AudioPlayer: React.FC<AudioPlayerProps> = ({notes, noteLength, onPlayComplete}) => {
+const AudioPlayer: React.FC<AudioPlayerProps> = ({
+  notes,
+  noteLength,
+  onPlayComplete,
+  onNoteStart,
+  onNoteEnd,
+}) => {
   useEffect(() => {
     if (notes.length > 0) {
       playSequence();
@@ -26,7 +34,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({notes, noteLength, onPlayCompl
 
   const playSequence = async () => {
     try {
-      await playNoteSequence(notes, noteLength);
+      await playNoteSequence(notes, noteLength, onNoteStart, onNoteEnd);
       if (onPlayComplete) {
         onPlayComplete();
       }
