@@ -6,7 +6,7 @@
     "android": "react-native run-android",
     "ios": "react-native run-ios",
     "web": "npx webpack serve --mode development --open",
-    "web:build": "npx webpack --mode production",
+    "web:build": "NODE_ENV=production npx webpack --mode production",
     "web:demo": "npx webpack serve --config webpack.demo.config.js --mode development --open",
     "web:demo:build": "npx webpack --config webpack.demo.config.js --mode production",
     "lint": "eslint .",

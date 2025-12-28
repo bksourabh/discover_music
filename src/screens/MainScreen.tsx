@@ -31,7 +31,7 @@ const {stopAllSounds} = audioPlayerModule;
 const databaseModule = isWeb
   ? require('../utils/database.web')
   : require('../utils/database');
-const {addRecentSequence, getRecentSequences, saveSequence} = databaseModule;
+const {addRecentSequence, getRecentSequences} = databaseModule;
 
 // Only import AudioPlayer for native (WebView doesn't work well on web)
 let AudioPlayer: any = null;
@@ -212,25 +212,83 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
     setHighlightedNote(null);
   };
 
-  const handleSave = async () => {
+  const exportSequenceToCSV = (notes: PianoNote[], noteLengthValue: number, filename?: string) => {
+    try {
+      if (notes.length === 0) {
+        Alert.alert('No Notes', 'No notes to export');
+        return;
+      }
+
+      // Create CSV content
+      const headers = ['Index', 'Note Name', 'Frequency (Hz)', 'Octave', 'Note Length (s)', 'Timestamp (s)'];
+      const rows: string[] = [headers.join(',')];
+      
+      let timestamp = 0;
+      
+      notes.forEach((note, index) => {
+        const row = [
+          (index + 1).toString(),
+          note.name,
+          note.frequency.toFixed(2),
+          note.octave.toString(),
+          noteLengthValue.toString(),
+          timestamp.toFixed(2),
+        ];
+        rows.push(row.join(','));
+        timestamp += noteLengthValue;
+      });
+
+      const csvContent = rows.join('\n');
+      
+      // Create blob and download (web)
+      if (isWeb) {
+        // @ts-ignore - window and document are available in web environment
+        const win = typeof window !== 'undefined' ? window : null;
+        if (win && win.document) {
+          // @ts-ignore - Blob is available in web environment
+          const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+          const link = win.document.createElement('a');
+          // @ts-ignore - URL.createObjectURL is available in web environment
+          const url = URL.createObjectURL(blob);
+          link.setAttribute('href', url);
+          link.setAttribute('download', filename || `sequence_${new Date().toISOString().split('T')[0]}.csv`);
+          link.style.visibility = 'hidden';
+          win.document.body.appendChild(link);
+          link.click();
+          win.document.body.removeChild(link);
+        }
+      } else {
+        // For native, show an alert with instructions
+        Alert.alert(
+          'CSV Export',
+          'CSV export is currently only available on web. The CSV content has been logged to the console.',
+          [{ text: 'OK' }]
+        );
+        console.log('CSV Content:\n', csvContent);
+      }
+    } catch (error) {
+      console.error('Error exporting CSV:', error);
+      Alert.alert('Error', 'Failed to export CSV');
+    }
+  };
+
+  const handleDownloadCSV = () => {
     if (currentNotes.length === 0) {
       Alert.alert('No Notes', 'Please generate notes first');
       return;
     }
+    const noteLengthNum = parseFloat(noteLength);
+    exportSequenceToCSV(currentNotes, noteLengthNum);
+  };
 
+  const handleExportRecentSequence = (sequence: NoteSequence) => {
     try {
-      await saveSequence({
-        notes: notesToString(currentNotes),
-        noteLength: parseFloat(noteLength),
-        totalLength: parseFloat(totalLength),
-        createdAt: new Date().toISOString(),
-        userId: user.id,
-      });
-
-      Alert.alert('Success', 'Sequence saved successfully!');
+      const notes = stringToNotes(sequence.notes);
+      const filename = `sequence_${new Date(sequence.createdAt).toISOString().split('T')[0]}.csv`;
+      exportSequenceToCSV(notes, sequence.noteLength, filename);
     } catch (error) {
-      console.error('Error saving sequence:', error);
-      Alert.alert('Error', 'Failed to save sequence');
+      console.error('Error exporting recent sequence:', error);
+      Alert.alert('Error', 'Failed to export sequence');
     }
   };
 
@@ -467,10 +525,10 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
       </TouchableOpacity>
 
       <TouchableOpacity
-        style={[styles.button, styles.saveButton, (currentNotes.length === 0 || isPlaying || isGenerating) && styles.buttonDisabled]}
-        onPress={handleSave}
+        style={[styles.button, styles.downloadButton, (currentNotes.length === 0 || isPlaying || isGenerating) && styles.buttonDisabled]}
+        onPress={handleDownloadCSV}
         disabled={currentNotes.length === 0 || isPlaying || isGenerating}>
-        <Text style={styles.buttonText}>Save Sequence</Text>
+        <Text style={styles.buttonText}>Export Notes to CSV</Text>
       </TouchableOpacity>
 
       {/* Audio Player Component - Hidden, handles playback (native only) */}
@@ -488,17 +546,23 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
         <View style={styles.recentContainer}>
           <Text style={styles.sectionTitle}>Recent Sequences</Text>
           {recentSequences.map((sequence, index) => (
-            <TouchableOpacity
-              key={sequence.id || index}
-              style={styles.recentItem}
-              onPress={() => handleLoadRecent(sequence)}>
-              <Text style={styles.recentItemText}>
-                Sequence {index + 1} - {sequence.noteLength}s notes, {sequence.totalLength}s total
-              </Text>
-              <Text style={styles.recentItemDate}>
-                {new Date(sequence.createdAt).toLocaleString()}
-              </Text>
-            </TouchableOpacity>
+            <View key={sequence.id || index} style={styles.recentItem}>
+              <TouchableOpacity
+                style={styles.recentItemContent}
+                onPress={() => handleLoadRecent(sequence)}>
+                <Text style={styles.recentItemText}>
+                  Sequence {index + 1} - {sequence.noteLength}s notes, {sequence.totalLength}s total
+                </Text>
+                <Text style={styles.recentItemDate}>
+                  {new Date(sequence.createdAt).toLocaleString()}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.recentItemExportButton}
+                onPress={() => handleExportRecentSequence(sequence)}>
+                <Text style={styles.recentItemExportButtonText}>Export to CSV</Text>
+              </TouchableOpacity>
+            </View>
           ))}
         </View>
       )}
@@ -549,7 +613,7 @@ const styles = StyleSheet.create({
   playButton: {
     backgroundColor: '#2196F3',
   },
-  saveButton: {
+  downloadButton: {
     backgroundColor: '#FF9800',
   },
   restoreButton: {
@@ -595,6 +659,24 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     borderWidth: 1,
     borderColor: '#ddd',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  recentItemContent: {
+    flex: 1,
+  },
+  recentItemExportButton: {
+    backgroundColor: '#FF9800',
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    borderRadius: 6,
+    marginLeft: 10,
+  },
+  recentItemExportButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
   },
   recentItemText: {
     fontSize: 16,

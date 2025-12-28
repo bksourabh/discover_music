@@ -2,14 +2,31 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const webpack = require('webpack');
 
+// Determine publicPath for GitHub Pages
+// If GITHUB_REPOSITORY is set (in CI), extract repo name and use it as base path
+// Otherwise, use '/' for local development
+function getPublicPath() {
+  const githubRepo = process.env.GITHUB_REPOSITORY;
+  if (githubRepo) {
+    // Extract repo name from "username/repo-name"
+    const repoName = githubRepo.split('/')[1];
+    return `/${repoName}/`;
+  }
+  // For local development or if repo name is not available, use root
+  return '/';
+}
+
+const publicPath = getPublicPath();
+const isProduction = process.env.NODE_ENV === 'production' || process.argv.includes('--mode=production');
+
 module.exports = {
   entry: './index.web.js',
-  mode: 'development',
-  devtool: 'source-map',
+  mode: isProduction ? 'production' : 'development',
+  devtool: isProduction ? 'source-map' : 'source-map',
   output: {
     path: path.resolve(__dirname, 'web-build'),
     filename: 'bundle.js',
-    publicPath: '/',
+    publicPath: publicPath,
   },
   resolve: {
     extensions: ['.web.js', '.js', '.jsx', '.ts', '.tsx', '.json'],
