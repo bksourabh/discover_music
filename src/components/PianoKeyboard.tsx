@@ -7,6 +7,9 @@ interface PianoKeyboardProps {
   startOctave?: number; // Starting octave
   endOctave?: number; // Ending octave
   onKeyPress?: (note: PianoNote) => void; // Callback when a key is pressed
+  rangeMode?: boolean; // Whether range selection mode is active
+  minRangeNote?: PianoNote | null; // Minimum note in range
+  maxRangeNote?: PianoNote | null; // Maximum note in range
 }
 
 /**
@@ -19,6 +22,9 @@ const PianoKeyboard: React.FC<PianoKeyboardProps> = ({
   startOctave = 0,
   endOctave = 8,
   onKeyPress,
+  rangeMode = false,
+  minRangeNote = null,
+  maxRangeNote = null,
 }) => {
   // Get all piano keys
   const allKeys = generatePianoKeys();
@@ -44,6 +50,22 @@ const PianoKeyboard: React.FC<PianoKeyboardProps> = ({
   // Check if a note is currently highlighted
   const isHighlighted = (note: PianoNote): boolean => {
     return highlightedNote?.name === note.name;
+  };
+
+  // Check if a note is the minimum range note
+  const isMinRangeNote = (note: PianoNote): boolean => {
+    return rangeMode && minRangeNote?.name === note.name;
+  };
+
+  // Check if a note is the maximum range note
+  const isMaxRangeNote = (note: PianoNote): boolean => {
+    return rangeMode && maxRangeNote?.name === note.name;
+  };
+
+  // Check if a note is within the selected range
+  const isInRange = (note: PianoNote): boolean => {
+    if (!rangeMode || !minRangeNote || !maxRangeNote) return false;
+    return note.frequency >= minRangeNote.frequency && note.frequency <= maxRangeNote.frequency;
   };
 
   // Get position for black key relative to white keys
@@ -98,11 +120,15 @@ const PianoKeyboard: React.FC<PianoKeyboardProps> = ({
                 styles.whiteKey,
                 {width: WHITE_KEY_WIDTH},
                 isHighlighted(key) && styles.whiteKeyHighlighted,
+                isMinRangeNote(key) && styles.whiteKeyMinRange,
+                isMaxRangeNote(key) && styles.whiteKeyMaxRange,
+                rangeMode && isInRange(key) && !isMinRangeNote(key) && !isMaxRangeNote(key) && styles.whiteKeyInRange,
               ]}>
               <Text
                 style={[
                   styles.whiteKeyText,
                   isHighlighted(key) && styles.whiteKeyTextHighlighted,
+                  (isMinRangeNote(key) || isMaxRangeNote(key)) && styles.whiteKeyTextRange,
                 ]}>
                 {key.name}
               </Text>
@@ -127,11 +153,15 @@ const PianoKeyboard: React.FC<PianoKeyboardProps> = ({
                     width: BLACK_KEY_WIDTH,
                   },
                   isHighlighted(blackKey) && styles.blackKeyHighlighted,
+                  isMinRangeNote(blackKey) && styles.blackKeyMinRange,
+                  isMaxRangeNote(blackKey) && styles.blackKeyMaxRange,
+                  rangeMode && isInRange(blackKey) && !isMinRangeNote(blackKey) && !isMaxRangeNote(blackKey) && styles.blackKeyInRange,
                 ]}>
                 <Text
                   style={[
                     styles.blackKeyText,
                     isHighlighted(blackKey) && styles.blackKeyTextHighlighted,
+                    (isMinRangeNote(blackKey) || isMaxRangeNote(blackKey)) && styles.blackKeyTextRange,
                   ]}>
                   {blackKey.name}
                 </Text>
@@ -251,6 +281,65 @@ const styles = StyleSheet.create({
   },
   blackKeyTextHighlighted: {
     color: '#333',
+    fontWeight: 'bold',
+    fontSize: 9,
+  },
+  whiteKeyMinRange: {
+    backgroundColor: '#4CAF50', // Green for minimum
+    borderRightColor: '#2E7D32',
+    borderRightWidth: 3,
+    shadowColor: '#4CAF50',
+    shadowOffset: {width: 0, height: 0},
+    shadowOpacity: 0.8,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  whiteKeyMaxRange: {
+    backgroundColor: '#2196F3', // Blue for maximum
+    borderRightColor: '#1565C0',
+    borderRightWidth: 3,
+    shadowColor: '#2196F3',
+    shadowOffset: {width: 0, height: 0},
+    shadowOpacity: 0.8,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  whiteKeyInRange: {
+    backgroundColor: '#E3F2FD', // Light blue for keys in range
+    borderRightColor: '#90CAF9',
+  },
+  whiteKeyTextRange: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 11,
+  },
+  blackKeyMinRange: {
+    backgroundColor: '#4CAF50', // Green for minimum
+    borderWidth: 3,
+    borderColor: '#2E7D32',
+    shadowColor: '#4CAF50',
+    shadowOffset: {width: 0, height: 0},
+    shadowOpacity: 0.9,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  blackKeyMaxRange: {
+    backgroundColor: '#2196F3', // Blue for maximum
+    borderWidth: 3,
+    borderColor: '#1565C0',
+    shadowColor: '#2196F3',
+    shadowOffset: {width: 0, height: 0},
+    shadowOpacity: 0.9,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  blackKeyInRange: {
+    backgroundColor: '#90CAF9', // Light blue for keys in range
+    borderWidth: 2,
+    borderColor: '#64B5F6',
+  },
+  blackKeyTextRange: {
+    color: '#fff',
     fontWeight: 'bold',
     fontSize: 9,
   },

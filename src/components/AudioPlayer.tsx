@@ -28,7 +28,8 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     
     // Cleanup on unmount
     return () => {
-      releaseAllSounds();
+      // Fire and forget - cleanup doesn't need to wait for fade-out
+      releaseAllSounds().catch(err => console.error('Error in cleanup:', err));
     };
   }, [notes, noteLength]);
 

@@ -53,22 +53,74 @@ const loadSound = (note: PianoNote): Promise<Sound> => {
 };
 
 /**
+ * Fade out a sound smoothly over a specified duration
+ */
+const fadeOutSound = (sound: Sound, fadeDuration: number): Promise<void> => {
+  return new Promise((resolve) => {
+    const fadeSteps = 20; // Number of steps for smooth fade
+    const stepDuration = fadeDuration / fadeSteps;
+    const volumeStep = 1.0 / fadeSteps;
+    let currentStep = 0;
+    
+    const fadeInterval = setInterval(() => {
+      currentStep++;
+      const newVolume = Math.max(0, 1.0 - (currentStep * volumeStep));
+      
+      try {
+        if (sound && sound.isPlaying()) {
+          sound.setVolume(newVolume);
+        }
+        
+        if (currentStep >= fadeSteps || newVolume <= 0) {
+          clearInterval(fadeInterval);
+          if (sound && sound.isPlaying()) {
+            sound.stop();
+            sound.setVolume(1.0); // Reset volume for next play
+          }
+          resolve();
+        }
+      } catch (error) {
+        clearInterval(fadeInterval);
+        if (sound && sound.isPlaying()) {
+          sound.stop();
+        }
+        resolve();
+      }
+    }, stepDuration);
+  });
+};
+
+/**
  * Play a single note using react-native-sound with MP3 files
  */
 export const playNote = async (note: PianoNote, duration: number): Promise<void> => {
   return new Promise(async (resolve, reject) => {
     let sound: Sound | null = null;
     let stopTimer: ReturnType<typeof setTimeout> | null = null;
+    let fadeTimer: ReturnType<typeof setTimeout> | null = null;
     let completed = false;
+    const fadeDuration = 150; // Fade out duration in milliseconds
     
-    const cleanup = () => {
+    const cleanup = async (shouldFade: boolean = false) => {
       if (!completed) {
         completed = true;
         if (stopTimer) {
           clearTimeout(stopTimer);
+          stopTimer = null;
         }
+        if (fadeTimer) {
+          clearTimeout(fadeTimer);
+          fadeTimer = null;
+        }
+        
         if (sound && sound.isPlaying()) {
-          sound.stop();
+          if (shouldFade) {
+            // Fade out smoothly
+            await fadeOutSound(sound, fadeDuration);
+          } else {
+            // Immediate stop (for errors)
+            sound.stop();
+          }
         }
       }
     };
@@ -80,27 +132,38 @@ export const playNote = async (note: PianoNote, duration: number): Promise<void>
       sound.setVolume(1.0);
       sound.setNumberOfLoops(0);
       
-      // Set up duration control
-      stopTimer = setTimeout(() => {
-        cleanup();
-        resolve();
-      }, duration * 1000);
-      
       // Store reference for potential cleanup
       const soundKey = `${note.name}-${Date.now()}`;
       activeSounds.set(soundKey, sound);
       
+      // Calculate when to start fade out (before the note ends)
+      const fadeStartTime = Math.max(0, (duration * 1000) - fadeDuration);
+      
+      // Set up fade-out timer
+      fadeTimer = setTimeout(async () => {
+        if (!completed && sound && sound.isPlaying()) {
+          await fadeOutSound(sound, fadeDuration);
+        }
+      }, fadeStartTime);
+      
+      // Set up duration control (slightly after fade completes)
+      stopTimer = setTimeout(async () => {
+        await cleanup(false);
+        activeSounds.delete(soundKey);
+        resolve();
+      }, duration * 1000);
+      
       // Play the sound
-      sound.play((success) => {
+      sound.play(async (success) => {
         if (completed) return;
         
         if (success) {
-          // Sound finished playing (might be shorter than duration)
-          cleanup();
+          // Sound finished playing naturally (might be shorter than duration)
+          await cleanup(false);
           activeSounds.delete(soundKey);
           resolve();
         } else {
-          cleanup();
+          await cleanup(false);
           activeSounds.delete(soundKey);
           console.error(`Failed to play note: ${note.name}`);
           reject(new Error(`Failed to play note: ${note.name}`));
@@ -108,7 +171,7 @@ export const playNote = async (note: PianoNote, duration: number): Promise<void>
       });
       
     } catch (error) {
-      cleanup();
+      await cleanup(false);
       console.error('Error playing note:', error);
       reject(error);
     }
@@ -125,7 +188,7 @@ export const playNoteSequence = async (
   onNoteEnd?: (note: PianoNote) => void
 ): Promise<void> => {
   // Stop any currently playing sounds
-  stopAllSounds();
+  await stopAllSounds();
   
   // Play notes sequentially
   for (const note of notes) {
@@ -140,16 +203,18 @@ export const playNoteSequence = async (
 };
 
 /**
- * Stop all currently playing sounds
+ * Stop all currently playing sounds with fade-out effect
  */
-export const stopAllSounds = (): void => {
+export const stopAllSounds = async (): Promise<void> => {
   try {
+    const fadePromises: Promise<void>[] = [];
     activeSounds.forEach((sound, key) => {
       if (sound && sound.isPlaying()) {
-        sound.stop();
+        fadePromises.push(fadeOutSound(sound, 150));
       }
       activeSounds.delete(key);
     });
+    await Promise.all(fadePromises);
   } catch (error) {
     console.error('Error stopping sounds:', error);
   }
@@ -158,9 +223,9 @@ export const stopAllSounds = (): void => {
 /**
  * Release all cached sounds (call this when component unmounts)
  */
-export const releaseAllSounds = (): void => {
+export const releaseAllSounds = async (): Promise<void> => {
   try {
-    stopAllSounds();
+    await stopAllSounds();
     soundCache.forEach((sound) => {
       if (sound) {
         sound.release();

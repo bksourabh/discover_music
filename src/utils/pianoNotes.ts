@@ -54,21 +54,53 @@ export const generatePianoKeys = (): PianoNote[] => {
 const ALL_PIANO_KEYS = generatePianoKeys();
 
 /**
+ * Compare two piano notes to determine their order
+ * Returns negative if note1 < note2, positive if note1 > note2, 0 if equal
+ */
+export const compareNotes = (note1: PianoNote, note2: PianoNote): number => {
+  return note1.frequency - note2.frequency;
+};
+
+/**
+ * Check if a note is within the specified range (inclusive)
+ */
+export const isNoteInRange = (note: PianoNote, minNote: PianoNote, maxNote: PianoNote): boolean => {
+  return note.frequency >= minNote.frequency && note.frequency <= maxNote.frequency;
+};
+
+/**
  * Generate random piano notes for the given duration
  * @param noteLength Length of each note in seconds
  * @param totalLength Total length of the sequence in seconds
+ * @param minNote Optional minimum note for range filtering
+ * @param maxNote Optional maximum note for range filtering
  * @returns Array of randomly selected piano notes
  */
 export const generateRandomNotes = (
   noteLength: number,
-  totalLength: number
+  totalLength: number,
+  minNote?: PianoNote,
+  maxNote?: PianoNote
 ): PianoNote[] => {
   const numNotes = Math.floor(totalLength / noteLength);
   const notes: PianoNote[] = [];
   
+  // Filter keys by range if provided
+  let availableKeys = ALL_PIANO_KEYS;
+  if (minNote && maxNote) {
+    availableKeys = ALL_PIANO_KEYS.filter(key => 
+      isNoteInRange(key, minNote, maxNote)
+    );
+  }
+  
+  if (availableKeys.length === 0) {
+    // Fallback to all keys if range is invalid
+    availableKeys = ALL_PIANO_KEYS;
+  }
+  
   for (let i = 0; i < numNotes; i++) {
-    const randomIndex = Math.floor(Math.random() * ALL_PIANO_KEYS.length);
-    notes.push(ALL_PIANO_KEYS[randomIndex]);
+    const randomIndex = Math.floor(Math.random() * availableKeys.length);
+    notes.push(availableKeys[randomIndex]);
   }
   
   return notes;

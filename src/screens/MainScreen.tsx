@@ -7,12 +7,14 @@ import {
   ScrollView,
   Alert,
   ActivityIndicator,
+  Switch,
 } from 'react-native';
 import {
   generateRandomNotes,
   notesToString,
   stringToNotes,
   PianoNote,
+  compareNotes,
 } from '../utils/pianoNotes';
 import PianoKeyboard from '../components/PianoKeyboard';
 import Dropdown from '../components/Dropdown';
@@ -80,6 +82,9 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [recentSequences, setRecentSequences] = useState<NoteSequence[]>([]);
   const [highlightedNote, setHighlightedNote] = useState<PianoNote | null>(null);
+  const [rangeMode, setRangeMode] = useState(false);
+  const [minRangeNote, setMinRangeNote] = useState<PianoNote | null>(null);
+  const [maxRangeNote, setMaxRangeNote] = useState<PianoNote | null>(null);
 
   useEffect(() => {
     loadRecentSequences();
@@ -116,11 +121,16 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
     }
 
     setIsGenerating(true);
-    stopAllSounds();
+    await stopAllSounds();
 
     try {
-      // Generate random notes
-      const notes = generateRandomNotes(noteLengthNum, totalLengthNum);
+      // Generate random notes with optional range
+      const notes = generateRandomNotes(
+        noteLengthNum, 
+        totalLengthNum,
+        rangeMode && minRangeNote && maxRangeNote ? minRangeNote : undefined,
+        rangeMode && minRangeNote && maxRangeNote ? maxRangeNote : undefined
+      );
       setCurrentNotes(notes);
 
       // Save to recent sequences
@@ -170,7 +180,7 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
 
     setIsPlaying(true);
     setHighlightedNote(null);
-    stopAllSounds();
+    await stopAllSounds();
     
     // For web, play directly using Web Audio API
     if (isWeb) {
@@ -233,26 +243,60 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
   };
 
   const handleKeyPress = async (note: PianoNote) => {
-    try {
-      // Highlight the pressed key
-      setHighlightedNote(note);
-      
-      // Play the note for a short duration (0.5 seconds)
-      const noteDuration = 0.5;
-      
-      if (isWeb) {
-        const {playNote} = require('../utils/audioPlayer.web');
-        await playNote(note, noteDuration);
+    if (rangeMode) {
+      // Range selection mode
+      if (!minRangeNote) {
+        // Set minimum note
+        setMinRangeNote(note);
+        setMaxRangeNote(null);
+      } else if (!maxRangeNote) {
+        // Set maximum note - must be higher than minimum
+        if (compareNotes(note, minRangeNote) > 0) {
+          setMaxRangeNote(note);
+        } else {
+          Alert.alert('Invalid Range', 'Maximum key must be higher than minimum key');
+        }
       } else {
-        const {playNote} = require('../utils/audioPlayer');
-        await playNote(note, noteDuration);
+        // Reset range selection
+        setMinRangeNote(note);
+        setMaxRangeNote(null);
       }
-      
-      // Clear highlight after note finishes playing
-      setHighlightedNote(null);
-    } catch (error) {
-      console.error('Error playing key:', error);
-      setHighlightedNote(null);
+    } else {
+      // Normal play mode
+      try {
+        // Highlight the pressed key
+        setHighlightedNote(note);
+        
+        // Play the note for a short duration (0.5 seconds)
+        const noteDuration = 0.5;
+        
+        if (isWeb) {
+          const {playNote} = require('../utils/audioPlayer.web');
+          await playNote(note, noteDuration);
+        } else {
+          const {playNote} = require('../utils/audioPlayer');
+          await playNote(note, noteDuration);
+        }
+        
+        // Clear highlight after note finishes playing
+        setHighlightedNote(null);
+      } catch (error) {
+        console.error('Error playing key:', error);
+        setHighlightedNote(null);
+      }
+    }
+  };
+
+  const handleRangeModeToggle = (value: boolean) => {
+    setRangeMode(value);
+    if (!value) {
+      // Clear range when disabling range mode
+      setMinRangeNote(null);
+      setMaxRangeNote(null);
+    } else {
+      // Clear range when enabling range mode (user needs to select new range)
+      setMinRangeNote(null);
+      setMaxRangeNote(null);
     }
   };
 
@@ -275,12 +319,37 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
         onValueChange={setTotalLength}
       />
 
+      {/* Range Mode Checkbox */}
+      <View style={styles.checkboxContainer}>
+        <Switch
+          value={rangeMode}
+          onValueChange={handleRangeModeToggle}
+          trackColor={{false: '#767577', true: '#4CAF50'}}
+          thumbColor={rangeMode ? '#fff' : '#f4f3f4'}
+        />
+        <Text style={styles.checkboxLabel}>
+          Select Piano Generation Range Mode
+        </Text>
+      </View>
+      {rangeMode && (
+        <View style={styles.rangeInfo}>
+          <Text style={styles.rangeInfoText}>
+            {minRangeNote 
+              ? `Min: ${minRangeNote.name}${maxRangeNote ? `, Max: ${maxRangeNote.name}` : ' (select max key)'}`
+              : 'Select minimum key, then maximum key'}
+          </Text>
+        </View>
+      )}
+
       {/* Piano Keyboard - Full 88-key range (A0 to C8) */}
       <PianoKeyboard
         highlightedNote={highlightedNote}
         startOctave={0}
         endOctave={8}
         onKeyPress={handleKeyPress}
+        rangeMode={rangeMode}
+        minRangeNote={minRangeNote}
+        maxRangeNote={maxRangeNote}
       />
 
       <TouchableOpacity
@@ -460,6 +529,33 @@ const styles = StyleSheet.create({
   recentItemDate: {
     fontSize: 12,
     color: '#666',
+  },
+  checkboxContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 15,
+    padding: 10,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  checkboxLabel: {
+    fontSize: 16,
+    color: '#333',
+    marginLeft: 10,
+    flex: 1,
+  },
+  rangeInfo: {
+    backgroundColor: '#e3f2fd',
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 15,
+  },
+  rangeInfoText: {
+    fontSize: 14,
+    color: '#1976d2',
+    textAlign: 'center',
   },
 });
 

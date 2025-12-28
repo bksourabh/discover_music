@@ -7,6 +7,19 @@ interface TimelineViewProps {
   noteLength: number;
   totalLength: number;
   highlightedNote?: PianoNote | null;
+  instrumentName?: string; // Optional instrument name, defaults to "Piano"
+}
+
+interface SwimLane {
+  id: string;
+  label: string;
+  notes: Array<{
+    note: PianoNote;
+    startTime: number;
+    left: number;
+    width: number;
+    isHighlighted: boolean;
+  }>;
 }
 
 const TimelineView: React.FC<TimelineViewProps> = ({
@@ -14,6 +27,7 @@ const TimelineView: React.FC<TimelineViewProps> = ({
   noteLength,
   totalLength,
   highlightedNote,
+  instrumentName = 'Piano',
 }) => {
   if (notes.length === 0) {
     return null;
@@ -23,6 +37,7 @@ const TimelineView: React.FC<TimelineViewProps> = ({
   const pixelsPerSecond = 100;
   const timelineWidth = totalLength * pixelsPerSecond;
   const noteWidth = noteLength * pixelsPerSecond;
+  const laneHeight = 60;
 
   // Generate time markers for each second with their positions
   const timeMarkers = [];
@@ -33,7 +48,7 @@ const TimelineView: React.FC<TimelineViewProps> = ({
     });
   }
 
-  // Generate note blocks with their positions
+  // Create note blocks for the first lane (all notes go here)
   const noteBlocks = notes.map((note, index) => {
     const startTime = index * noteLength;
     const left = startTime * pixelsPerSecond;
@@ -49,6 +64,26 @@ const TimelineView: React.FC<TimelineViewProps> = ({
       isHighlighted,
     };
   });
+
+  // Create swimlanes: first lane has all notes, others are placeholders
+  const numPlaceholderLanes = 2; // Number of empty placeholder lanes
+  const swimLanes: SwimLane[] = [];
+  
+  // First lane with all actual notes
+  swimLanes.push({
+    id: 'lane-1',
+    label: `${instrumentName} Sample 1`,
+    notes: noteBlocks,
+  });
+
+  // Create placeholder lanes (empty)
+  for (let i = 0; i < numPlaceholderLanes; i++) {
+    swimLanes.push({
+      id: `lane-placeholder-${i + 2}`,
+      label: `${instrumentName} Sample ${i + 2}`,
+      notes: [], // Empty placeholder
+    });
+  }
 
   // Color mapping for different notes (using a simple hash)
   const getNoteColor = (noteName: string, isHighlighted: boolean) => {
@@ -66,10 +101,16 @@ const TimelineView: React.FC<TimelineViewProps> = ({
     <View style={styles.container}>
       <Text style={styles.title}>Timeline View</Text>
       
-      {/* Time markers */}
+      {/* Time markers and swimlanes */}
       <View style={styles.timeMarkersContainer}>
         <ScrollView horizontal showsHorizontalScrollIndicator={true}>
-          <View style={[styles.timelineContainer, {width: timelineWidth}]}>
+          <View style={[
+            styles.timelineContainer, 
+            {
+              width: timelineWidth,
+              minHeight: swimLanes.length * laneHeight + 40,
+            }
+          ]}>
             {/* Time scale markers */}
             <View style={styles.timeScale}>
               {timeMarkers.map((marker) => (
@@ -82,29 +123,49 @@ const TimelineView: React.FC<TimelineViewProps> = ({
               ))}
             </View>
 
-            {/* Note blocks */}
-            <View style={styles.notesContainer}>
-              {noteBlocks.map((block, index) => (
-                <View
-                  key={index}
+            {/* Swimlanes */}
+            <View style={styles.swimlanesContainer}>
+              {swimLanes.map((lane, laneIndex) => (
+                <View 
+                  key={lane.id} 
                   style={[
-                    styles.noteBlock,
+                    styles.swimlane,
                     {
-                      left: block.left,
-                      width: block.width,
-                      backgroundColor: getNoteColor(block.note.name, block.isHighlighted),
+                      top: laneIndex * laneHeight + 30,
+                      height: laneHeight,
                     },
-                    block.isHighlighted && styles.noteBlockHighlighted,
                   ]}>
-                  <Text 
-                    style={[
-                      styles.noteText,
-                      block.isHighlighted && styles.noteTextHighlighted,
-                    ]}
-                    numberOfLines={1}
-                    adjustsFontSizeToFit>
-                    {block.note.name}
-                  </Text>
+                  {/* Lane label */}
+                  <View style={styles.laneLabel}>
+                    <Text style={styles.laneLabelText}>{lane.label}</Text>
+                  </View>
+                  
+                  {/* Lane content with notes */}
+                  <View style={styles.laneContent}>
+                    {lane.notes.map((block, noteIndex) => (
+                      <View
+                        key={`${lane.id}-note-${noteIndex}`}
+                        style={[
+                          styles.noteBlock,
+                          {
+                            left: block.left,
+                            width: block.width,
+                            backgroundColor: getNoteColor(block.note.name, block.isHighlighted),
+                          },
+                          block.isHighlighted && styles.noteBlockHighlighted,
+                        ]}>
+                        <Text 
+                          style={[
+                            styles.noteText,
+                            block.isHighlighted && styles.noteTextHighlighted,
+                          ]}
+                          numberOfLines={1}
+                          adjustsFontSizeToFit>
+                          {block.note.name}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
                 </View>
               ))}
             </View>
@@ -115,7 +176,7 @@ const TimelineView: React.FC<TimelineViewProps> = ({
       {/* Legend */}
       <View style={styles.legend}>
         <Text style={styles.legendText}>
-          Note Length: {noteLength}s | Total Length: {totalLength}s | Notes: {notes.length}
+          Note Length: {noteLength}s | Total Length: {totalLength}s | Notes: {notes.length} | Lanes: {swimLanes.length}
         </Text>
       </View>
     </View>
@@ -138,17 +199,17 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   timeMarkersContainer: {
-    maxHeight: 200,
+    maxHeight: 500,
   },
   timelineContainer: {
     position: 'relative',
-    minHeight: 120,
     paddingTop: 30,
+    paddingLeft: 100, // Space for lane labels
   },
   timeScale: {
     position: 'absolute',
     top: 0,
-    left: 0,
+    left: 100, // Start after lane labels
     right: 0,
     height: 30,
     borderBottomWidth: 2,
@@ -168,14 +229,45 @@ const styles = StyleSheet.create({
     color: '#666',
     marginTop: 2,
   },
-  notesContainer: {
+  swimlanesContainer: {
     position: 'relative',
     marginTop: 10,
-    minHeight: 60,
+  },
+  swimlane: {
+    position: 'absolute',
+    left: 100, // Start after lane labels
+    right: 0,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
+    flexDirection: 'row',
+  },
+  laneLabel: {
+    position: 'absolute',
+    left: -100,
+    width: 95,
+    height: '100%',
+    backgroundColor: '#f8f8f8',
+    borderRightWidth: 1,
+    borderRightColor: '#ddd',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 5,
+  },
+  laneLabelText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#333',
+    textAlign: 'center',
+  },
+  laneContent: {
+    position: 'relative',
+    flex: 1,
+    height: '100%',
   },
   noteBlock: {
     position: 'absolute',
-    height: 50,
+    height: 45,
+    top: 5,
     borderRadius: 4,
     borderWidth: 1,
     borderColor: '#333',
