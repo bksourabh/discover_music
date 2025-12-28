@@ -69,18 +69,36 @@ export const isNoteInRange = (note: PianoNote, minNote: PianoNote, maxNote: Pian
 };
 
 /**
+ * Check if a note is a sharp (black key)
+ */
+export const isSharp = (note: PianoNote): boolean => {
+  return note.name.includes('#');
+};
+
+/**
+ * Check if a note is a natural/flat (white key)
+ */
+export const isNatural = (note: PianoNote): boolean => {
+  return !note.name.includes('#');
+};
+
+/**
  * Generate random piano notes for the given duration
  * @param noteLength Length of each note in seconds
  * @param totalLength Total length of the sequence in seconds
  * @param minNote Optional minimum note for range filtering
  * @param maxNote Optional maximum note for range filtering
+ * @param useSharps Whether to include sharp notes (black keys), default true
+ * @param useFlats Whether to include natural/flat notes (white keys), default true
  * @returns Array of randomly selected piano notes
  */
 export const generateRandomNotes = (
   noteLength: number,
   totalLength: number,
   minNote?: PianoNote,
-  maxNote?: PianoNote
+  maxNote?: PianoNote,
+  useSharps: boolean = true,
+  useFlats: boolean = true
 ): PianoNote[] => {
   const numNotes = Math.floor(totalLength / noteLength);
   const notes: PianoNote[] = [];
@@ -93,8 +111,17 @@ export const generateRandomNotes = (
     );
   }
   
+  // Filter by sharps/flats
+  if (!useSharps || !useFlats) {
+    availableKeys = availableKeys.filter(key => {
+      if (!useSharps && isSharp(key)) return false;
+      if (!useFlats && isNatural(key)) return false;
+      return true;
+    });
+  }
+  
   if (availableKeys.length === 0) {
-    // Fallback to all keys if range is invalid
+    // Fallback to all keys if filters result in empty set
     availableKeys = ALL_PIANO_KEYS;
   }
   

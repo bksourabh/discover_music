@@ -85,6 +85,8 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
   const [rangeMode, setRangeMode] = useState(false);
   const [minRangeNote, setMinRangeNote] = useState<PianoNote | null>(null);
   const [maxRangeNote, setMaxRangeNote] = useState<PianoNote | null>(null);
+  const [useSharps, setUseSharps] = useState(true);
+  const [useFlats, setUseFlats] = useState(true);
 
   useEffect(() => {
     loadRecentSequences();
@@ -124,12 +126,14 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
     await stopAllSounds();
 
     try {
-      // Generate random notes with optional range
+      // Generate random notes with optional range and sharp/flat filters
       const notes = generateRandomNotes(
         noteLengthNum, 
         totalLengthNum,
         rangeMode && minRangeNote && maxRangeNote ? minRangeNote : undefined,
-        rangeMode && minRangeNote && maxRangeNote ? maxRangeNote : undefined
+        rangeMode && minRangeNote && maxRangeNote ? maxRangeNote : undefined,
+        useSharps,
+        useFlats
       );
       setCurrentNotes(notes);
 
@@ -300,6 +304,41 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
     }
   };
 
+  const handleUseSharpsToggle = (value: boolean) => {
+    // Prevent turning off sharps if flats is already off
+    if (!value && !useFlats) {
+      Alert.alert('Invalid Selection', 'At least one of "Use Sharps" or "Use Flats" must be enabled');
+      return;
+    }
+    setUseSharps(value);
+  };
+
+  const handleUseFlatsToggle = (value: boolean) => {
+    // Prevent turning off flats if sharps is already off
+    if (!value && !useSharps) {
+      Alert.alert('Invalid Selection', 'At least one of "Use Sharps" or "Use Flats" must be enabled');
+      return;
+    }
+    setUseFlats(value);
+  };
+
+  const handleRestoreToDefault = async () => {
+    // Stop any playing sounds
+    await stopAllSounds();
+    
+    // Reset all state to default values
+    setNoteLength('0.5');
+    setTotalLength('15');
+    setCurrentNotes([]);
+    setIsPlaying(false);
+    setHighlightedNote(null);
+    setRangeMode(false);
+    setMinRangeNote(null);
+    setMaxRangeNote(null);
+    setUseSharps(true);
+    setUseFlats(true);
+  };
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.title}>Piano Note Generator</Text>
@@ -318,6 +357,13 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
         options={totalLengthOptions}
         onValueChange={setTotalLength}
       />
+
+      {/* Restore to Default Button */}
+      <TouchableOpacity
+        style={[styles.button, styles.restoreButton]}
+        onPress={handleRestoreToDefault}>
+        <Text style={styles.buttonText}>Restore to Default</Text>
+      </TouchableOpacity>
 
       {/* Range Mode Checkbox */}
       <View style={styles.checkboxContainer}>
@@ -340,6 +386,32 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
           </Text>
         </View>
       )}
+
+      {/* Use Sharps Checkbox */}
+      <View style={styles.checkboxContainer}>
+        <Switch
+          value={useSharps}
+          onValueChange={handleUseSharpsToggle}
+          trackColor={{false: '#767577', true: '#4CAF50'}}
+          thumbColor={useSharps ? '#fff' : '#f4f3f4'}
+        />
+        <Text style={styles.checkboxLabel}>
+          Use Sharps (Black Keys)
+        </Text>
+      </View>
+
+      {/* Use Flats Checkbox */}
+      <View style={styles.checkboxContainer}>
+        <Switch
+          value={useFlats}
+          onValueChange={handleUseFlatsToggle}
+          trackColor={{false: '#767577', true: '#4CAF50'}}
+          thumbColor={useFlats ? '#fff' : '#f4f3f4'}
+        />
+        <Text style={styles.checkboxLabel}>
+          Use Flats (White Keys)
+        </Text>
+      </View>
 
       {/* Piano Keyboard - Full 88-key range (A0 to C8) */}
       <PianoKeyboard
@@ -479,6 +551,9 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     backgroundColor: '#FF9800',
+  },
+  restoreButton: {
+    backgroundColor: '#9E9E9E',
   },
   logoutButton: {
     backgroundColor: '#f44336',
