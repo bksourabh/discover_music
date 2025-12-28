@@ -81,6 +81,13 @@ module.exports = {
         test: /\.(png|jpe?g|gif|svg)$/i,
         type: 'asset/resource',
       },
+      {
+        test: /\.mp3$/i,
+        type: 'asset/resource',
+        generator: {
+          filename: 'piano-mp3/[name][ext]',
+        },
+      },
     ],
   },
   plugins: [
@@ -90,9 +97,15 @@ module.exports = {
     }),
   ],
   devServer: {
-    static: {
-      directory: path.join(__dirname, 'web-build'),
-    },
+    static: [
+      {
+        directory: path.join(__dirname, 'web-build'),
+      },
+      {
+        directory: path.join(__dirname, 'piano-mp3'),
+        publicPath: '/piano-mp3',
+      },
+    ],
     compress: true,
     port: 3000,
     hot: true,

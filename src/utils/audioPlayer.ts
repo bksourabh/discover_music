@@ -1,54 +1,114 @@
 import Sound from 'react-native-sound';
 import {PianoNote} from './pianoNotes';
+import {getMp3Filename} from './noteToMp3';
 
 // Enable playback in silence mode (iOS)
 Sound.setCategory('Playback');
 
-// Store active sounds
-const activeSounds: Sound[] = [];
+// Store active sounds for cleanup
+const activeSounds: Map<string, Sound> = new Map();
 
-let audioContext: any = null;
-let isInitialized = false;
+// Cache of loaded sounds to avoid reloading
+const soundCache: Map<string, Sound> = new Map();
 
 /**
- * Initialize Web Audio API context
- * Note: This uses a workaround with react-native-webview to generate tones
- * Since react-native-sound requires actual audio files, we generate tones
- * using Web Audio API in a WebView component
+ * Load a sound file for a note
+ * For Android: files should be in android/app/src/main/res/raw/ (without .mp3 extension)
+ * For iOS: files should be bundled or in the app bundle
  */
+const loadSound = (note: PianoNote): Promise<Sound> => {
+  return new Promise((resolve, reject) => {
+    const filename = getMp3Filename(note);
+    // Remove .mp3 extension for react-native-sound (it expects just the filename)
+    const soundName = filename.replace('.mp3', '');
+    
+    // Check cache first
+    if (soundCache.has(soundName)) {
+      const cachedSound = soundCache.get(soundName)!;
+      // Create a new instance from the cached sound to allow multiple simultaneous plays
+      const sound = new Sound(soundName, Sound.MAIN_BUNDLE, (error) => {
+        if (error) {
+          console.error(`Error loading sound ${soundName}:`, error);
+          reject(error);
+        } else {
+          resolve(sound);
+        }
+      });
+      return;
+    }
+    
+    // Load new sound
+    // For Android: Sound.MAIN_BUNDLE looks in res/raw/
+    // For iOS: needs to be in the bundle
+    const sound = new Sound(soundName, Sound.MAIN_BUNDLE, (error) => {
+      if (error) {
+        console.error(`Error loading sound ${soundName}:`, error);
+        reject(error);
+      } else {
+        soundCache.set(soundName, sound);
+        resolve(sound);
+      }
+    });
+  });
+};
 
 /**
- * Play a single note using react-native-sound
- * Since react-native-sound requires audio files, this implementation
- * generates a simple sine wave tone programmatically
- * 
- * For production use, you would:
- * 1. Use pre-recorded piano sample files for each note
- * 2. Or use react-native-audio-recorder-player for better tone generation
- * 3. Or implement Web Audio API via react-native-webview
- * 
- * Current implementation uses a simple approach that works with the library
+ * Play a single note using react-native-sound with MP3 files
  */
 export const playNote = async (note: PianoNote, duration: number): Promise<void> => {
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
+    let sound: Sound | null = null;
+    let stopTimer: ReturnType<typeof setTimeout> | null = null;
+    let completed = false;
+    
+    const cleanup = () => {
+      if (!completed) {
+        completed = true;
+        if (stopTimer) {
+          clearTimeout(stopTimer);
+        }
+        if (sound && sound.isPlaying()) {
+          sound.stop();
+        }
+      }
+    };
+    
     try {
-      // Note: react-native-sound requires actual audio files
-      // This is a placeholder that simulates playback timing
-      // In production, you should:
-      // 1. Generate audio files for each note frequency, OR
-      // 2. Use react-native-webview with Web Audio API injected JavaScript
+      sound = await loadSound(note);
       
-      console.log(`Playing note: ${note.name} at ${note.frequency}Hz for ${duration}s`);
+      // Set volume
+      sound.setVolume(1.0);
+      sound.setNumberOfLoops(0);
       
-      // Simulate note playback with proper timing
-      // Replace this with actual audio file playback in production
-      const timer = setTimeout(() => {
+      // Set up duration control
+      stopTimer = setTimeout(() => {
+        cleanup();
         resolve();
       }, duration * 1000);
       
-      // Store timer for potential cancellation
-      // In real implementation, store Sound objects here
+      // Store reference for potential cleanup
+      const soundKey = `${note.name}-${Date.now()}`;
+      activeSounds.set(soundKey, sound);
+      
+      // Play the sound
+      sound.play((success) => {
+        if (completed) return;
+        
+        if (success) {
+          // Sound finished playing (might be shorter than duration)
+          cleanup();
+          activeSounds.delete(soundKey);
+          resolve();
+        } else {
+          cleanup();
+          activeSounds.delete(soundKey);
+          console.error(`Failed to play note: ${note.name}`);
+          reject(new Error(`Failed to play note: ${note.name}`));
+        }
+      });
+      
     } catch (error) {
+      cleanup();
       console.error('Error playing note:', error);
       reject(error);
     }
@@ -76,15 +136,31 @@ export const playNoteSequence = async (
  */
 export const stopAllSounds = (): void => {
   try {
-    activeSounds.forEach(sound => {
-      if (sound) {
+    activeSounds.forEach((sound, key) => {
+      if (sound && sound.isPlaying()) {
         sound.stop();
+      }
+      activeSounds.delete(key);
+    });
+  } catch (error) {
+    console.error('Error stopping sounds:', error);
+  }
+};
+
+/**
+ * Release all cached sounds (call this when component unmounts)
+ */
+export const releaseAllSounds = (): void => {
+  try {
+    stopAllSounds();
+    soundCache.forEach((sound) => {
+      if (sound) {
         sound.release();
       }
     });
-    activeSounds.length = 0;
+    soundCache.clear();
   } catch (error) {
-    console.error('Error stopping sounds:', error);
+    console.error('Error releasing sounds:', error);
   }
 };
 
