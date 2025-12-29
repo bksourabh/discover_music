@@ -16,6 +16,7 @@ import {
   stringToNotes,
   PianoNote,
   compareNotes,
+  generatePianoKeys,
 } from '../utils/pianoNotes';
 import PianoKeyboard from '../components/PianoKeyboard';
 import Dropdown from '../components/Dropdown';
@@ -360,6 +361,166 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
     exportSequenceToCSV(currentNotes, noteLengthNum);
   };
 
+  const parseCSV = (csvContent: string): {notes: PianoNote[], noteLength: number} => {
+    const lines = csvContent.trim().split('\n');
+    if (lines.length < 2) {
+      throw new Error('CSV file must have at least a header and one data row');
+    }
+
+    // Parse header to find column indices
+    const header = lines[0].split(',').map(h => h.trim());
+    const noteNameIndex = header.indexOf('Note Name');
+    const noteLengthIndex = header.indexOf('Note Length (s)');
+    const frequencyIndex = header.indexOf('Frequency (Hz)');
+    const octaveIndex = header.indexOf('Octave');
+
+    if (noteNameIndex === -1) {
+      throw new Error('CSV must contain "Note Name" column');
+    }
+    if (noteLengthIndex === -1) {
+      throw new Error('CSV must contain "Note Length (s)" column');
+    }
+
+    // Get all piano keys for lookup
+    const allKeys = generatePianoKeys();
+    const notes: PianoNote[] = [];
+    let parsedNoteLength: number | null = null;
+
+    // Parse data rows
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue; // Skip empty lines
+
+      const values = line.split(',').map(v => v.trim());
+      if (values.length <= Math.max(noteNameIndex, noteLengthIndex)) {
+        continue; // Skip invalid rows
+      }
+
+      const noteName = values[noteNameIndex];
+      const noteLengthValue = parseFloat(values[noteLengthIndex]);
+
+      // Store note length (should be consistent across rows)
+      if (parsedNoteLength === null) {
+        parsedNoteLength = noteLengthValue;
+      }
+
+      // Find matching piano note by name
+      const matchingNote = allKeys.find(key => key.name === noteName);
+      if (matchingNote) {
+        notes.push(matchingNote);
+      } else {
+        // Try to construct note from frequency and octave if available
+        if (frequencyIndex !== -1 && octaveIndex !== -1 && 
+            values[frequencyIndex] && values[octaveIndex]) {
+          const frequency = parseFloat(values[frequencyIndex]);
+          const octave = parseInt(values[octaveIndex]);
+          // Find closest matching note by frequency
+          const closestNote = allKeys.reduce((prev, curr) => {
+            return Math.abs(curr.frequency - frequency) < Math.abs(prev.frequency - frequency)
+              ? curr : prev;
+          });
+          if (Math.abs(closestNote.frequency - frequency) < 1) { // Within 1 Hz
+            notes.push(closestNote);
+          } else {
+            console.warn(`Could not find matching note for ${noteName}, skipping`);
+          }
+        } else {
+          console.warn(`Could not find matching note for ${noteName}, skipping`);
+        }
+      }
+    }
+
+    if (notes.length === 0) {
+      throw new Error('No valid notes found in CSV file');
+    }
+
+    return {
+      notes,
+      noteLength: parsedNoteLength || parseFloat(noteLength), // Fallback to current noteLength
+    };
+  };
+
+  const handleUploadCSV = () => {
+    if (isWeb) {
+      // Create a file input element for web
+      // @ts-ignore - window and document are available in web environment
+      const win = typeof window !== 'undefined' ? window : null;
+      if (win && win.document) {
+        const input = win.document.createElement('input');
+        input.type = 'file';
+        input.accept = '.csv';
+        input.style.display = 'none';
+        
+        input.onchange = async (e: Event) => {
+          const target = e.target as HTMLInputElement;
+          // @ts-ignore - files property exists on HTMLInputElement in web environment
+          const file = target.files?.[0];
+          if (!file) return;
+
+          try {
+            const text = await file.text();
+            const {notes: parsedNotes, noteLength: parsedNoteLength} = parseCSV(text);
+            
+            // Load the notes
+            setCurrentNotes(parsedNotes);
+            setNoteLength(parsedNoteLength.toString());
+            
+            // Calculate total length
+            const totalLengthValue = parsedNotes.length * parsedNoteLength;
+            setTotalLength(Math.ceil(totalLengthValue).toString());
+
+            // Save to recent sequences
+            const sequence: NoteSequence = {
+              notes: notesToString(parsedNotes),
+              noteLength: parsedNoteLength,
+              totalLength: totalLengthValue,
+              createdAt: new Date().toISOString(),
+            };
+            await addRecentSequence(sequence);
+            await loadRecentSequences();
+
+            // Auto-play the loaded sequence
+            setIsPlaying(true);
+            setHighlightedNote(null);
+            await stopAllSounds();
+            
+            try {
+              const {playNoteSequence} = require('../utils/audioPlayer.web');
+              await playNoteSequence(
+                parsedNotes,
+                parsedNoteLength,
+                (note: PianoNote) => setHighlightedNote(note),
+                () => {} // onNoteEnd - no action needed
+              );
+              setIsPlaying(false);
+              setHighlightedNote(null);
+            } catch (error) {
+              console.error('Error playing notes:', error);
+              setIsPlaying(false);
+              setHighlightedNote(null);
+            }
+          } catch (error) {
+            console.error('Error parsing CSV:', error);
+            Alert.alert('Error', error instanceof Error ? error.message : 'Failed to parse CSV file');
+          }
+          
+          // Clean up
+          win.document.body.removeChild(input);
+        };
+        
+        win.document.body.appendChild(input);
+        input.click();
+      }
+    } else {
+      // For native, show an alert
+      Alert.alert(
+        'Upload CSV',
+        'CSV upload is currently only available on web. Please use the web version to upload CSV files.',
+        [{ text: 'OK' }]
+      );
+    }
+  };
+
   const handleExportRecentSequence = (sequence: NoteSequence) => {
     try {
       const notes = stringToNotes(sequence.notes);
@@ -610,6 +771,13 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
         <Text style={[styles.buttonText, dynamicStyles.buttonText]}>Export Notes to CSV</Text>
       </TouchableOpacity>
 
+      <TouchableOpacity
+        style={[styles.button, styles.uploadButton, dynamicStyles.button, (isPlaying || isGenerating) && styles.buttonDisabled]}
+        onPress={handleUploadCSV}
+        disabled={isPlaying || isGenerating}>
+        <Text style={[styles.buttonText, dynamicStyles.buttonText]}>Upload Notes CSV</Text>
+      </TouchableOpacity>
+
       {/* Audio Player Component - Hidden, handles playback (native only) */}
       {!isWeb && isPlaying && currentNotes.length > 0 && AudioPlayer && (
         <AudioPlayer
@@ -694,6 +862,9 @@ const styles = StyleSheet.create({
   },
   downloadButton: {
     backgroundColor: '#FF9800',
+  },
+  uploadButton: {
+    backgroundColor: '#9C27B0',
   },
   restoreButton: {
     backgroundColor: '#9E9E9E',
