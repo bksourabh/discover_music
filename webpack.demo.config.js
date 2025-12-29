@@ -138,6 +138,11 @@ module.exports = {
     hot: true,
     open: true,
     historyApiFallback: true,
+    headers: {
+      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+      'Pragma': 'no-cache',
+      'Expires': '0',
+    },
     client: {
       overlay: {
         warnings: false,
