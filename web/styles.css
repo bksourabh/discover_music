@@ -84,3 +84,79 @@ div[onclick] {
   cursor: pointer;
   user-select: none;
 }
+
+/* Responsive Design - Mobile First Approach */
+
+/* Base mobile styles (default, up to 767px) */
+@media screen and (max-width: 767px) {
+  html {
+    font-size: 14px;
+  }
+
+  body {
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Ensure touch targets are at least 44x44px for iOS/Android */
+  button, [role="button"], div[onclick], a {
+    min-height: 44px;
+    min-width: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Prevent text selection on touch interactions */
+  div[role="button"], div[onclick], button {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+
+  /* Better scrolling on iOS */
+  #root {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Improve input rendering on mobile */
+  input[type="text"],
+  input[type="number"],
+  textarea {
+    font-size: 16px; /* Prevents zoom on iOS */
+    padding: 12px;
+    min-height: 44px;
+  }
+}
+
+/* Tablet styles (768px - 1023px) */
+@media screen and (min-width: 768px) and (max-width: 1023px) {
+  html {
+    font-size: 15px;
+  }
+}
+
+/* Desktop styles (1024px and above) */
+@media screen and (min-width: 1024px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+/* Landscape mobile orientation */
+@media screen and (max-width: 767px) and (orientation: landscape) {
+  html {
+    font-size: 14px;
+  }
+}
+
+/* High DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  /* Better rendering on retina displays */
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}

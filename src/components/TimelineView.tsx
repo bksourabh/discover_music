@@ -1,5 +1,5 @@
-import React from 'react';
-import {View, Text, StyleSheet, ScrollView} from 'react-native';
+import React, {useState, useEffect} from 'react';
+import {View, Text, StyleSheet, ScrollView, Dimensions} from 'react-native';
 import {PianoNote} from '../utils/pianoNotes';
 
 interface TimelineViewProps {
@@ -29,15 +29,27 @@ const TimelineView: React.FC<TimelineViewProps> = ({
   highlightedNote,
   instrumentName = 'Piano',
 }) => {
+  // Get screen dimensions for responsive design
+  const [screenData, setScreenData] = useState(Dimensions.get('window'));
+  
+  useEffect(() => {
+    const subscription = Dimensions.addEventListener('change', ({window}) => {
+      setScreenData(window);
+    });
+    return () => subscription?.remove();
+  }, []);
+
+  const isMobile = screenData.width < 768;
+
   if (notes.length === 0) {
     return null;
   }
 
-  // Calculate the width of the timeline container (assuming 100 pixels per second)
-  const pixelsPerSecond = 100;
+  // Calculate the width of the timeline container (responsive pixels per second)
+  const pixelsPerSecond = isMobile ? 60 : 100;
   const timelineWidth = totalLength * pixelsPerSecond;
   const noteWidth = noteLength * pixelsPerSecond;
-  const laneHeight = 60;
+  const laneHeight = isMobile ? 45 : 60;
 
   // Generate time markers for each second with their positions
   const timeMarkers = [];
@@ -98,28 +110,32 @@ const TimelineView: React.FC<TimelineViewProps> = ({
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Timeline View</Text>
+    <View style={[styles.container, isMobile && styles.containerMobile]}>
+      <Text style={[styles.title, isMobile && styles.titleMobile]}>Timeline View</Text>
       
       {/* Time markers and swimlanes */}
       <View style={styles.timeMarkersContainer}>
         <ScrollView horizontal showsHorizontalScrollIndicator={true}>
           <View style={[
             styles.timelineContainer, 
+            isMobile && styles.timelineContainerMobile,
             {
               width: timelineWidth,
-              minHeight: swimLanes.length * laneHeight + 40,
+              minHeight: swimLanes.length * laneHeight + (isMobile ? 30 : 40),
             }
           ]}>
             {/* Time scale markers */}
-            <View style={styles.timeScale}>
+            <View style={[
+              styles.timeScale,
+              isMobile && styles.timeScaleMobile,
+            ]}>
               {timeMarkers.map((marker) => (
-                <View 
-                  key={marker.second} 
-                  style={[styles.timeMarker, {left: marker.position}]}>
-                  <View style={styles.timeMarkerLine} />
-                  <Text style={styles.timeMarkerText}>{marker.second}s</Text>
-                </View>
+                  <View 
+                    key={marker.second} 
+                    style={[styles.timeMarker, {left: marker.position}]}>
+                    <View style={styles.timeMarkerLine} />
+                    <Text style={[styles.timeMarkerText, isMobile && styles.timeMarkerTextMobile]}>{marker.second}s</Text>
+                  </View>
               ))}
             </View>
 
@@ -130,14 +146,18 @@ const TimelineView: React.FC<TimelineViewProps> = ({
                   key={lane.id} 
                   style={[
                     styles.swimlane,
+                    isMobile && styles.swimlaneMobile,
                     {
-                      top: laneIndex * laneHeight + 30,
+                      top: laneIndex * laneHeight + (isMobile ? 25 : 30),
                       height: laneHeight,
                     },
                   ]}>
                   {/* Lane label */}
-                  <View style={styles.laneLabel}>
-                    <Text style={styles.laneLabelText}>{lane.label}</Text>
+                  <View style={[
+                    styles.laneLabel,
+                    isMobile && styles.laneLabelMobile,
+                  ]}>
+                    <Text style={[styles.laneLabelText, isMobile && styles.laneLabelTextMobile]}>{lane.label}</Text>
                   </View>
                   
                   {/* Lane content with notes */}
@@ -147,16 +167,19 @@ const TimelineView: React.FC<TimelineViewProps> = ({
                         key={`${lane.id}-note-${noteIndex}`}
                         style={[
                           styles.noteBlock,
+                          isMobile && styles.noteBlockMobile,
                           {
                             left: block.left,
                             width: block.width,
                             backgroundColor: getNoteColor(block.note.name, block.isHighlighted),
+                            height: isMobile ? 35 : 45,
                           },
                           block.isHighlighted && styles.noteBlockHighlighted,
                         ]}>
                         <Text 
                           style={[
                             styles.noteText,
+                            isMobile && styles.noteTextMobile,
                             block.isHighlighted && styles.noteTextHighlighted,
                           ]}
                           numberOfLines={1}
@@ -175,8 +198,12 @@ const TimelineView: React.FC<TimelineViewProps> = ({
 
       {/* Legend */}
       <View style={styles.legend}>
-        <Text style={styles.legendText}>
-          Note Length: {noteLength}s | Total Length: {totalLength}s | Notes: {notes.length} | Lanes: {swimLanes.length}
+        <Text style={[styles.legendText, isMobile && styles.legendTextMobile]}>
+          {isMobile ? (
+            `Length: ${noteLength}s / ${totalLength}s | Notes: ${notes.length}`
+          ) : (
+            `Note Length: ${noteLength}s | Total Length: ${totalLength}s | Notes: ${notes.length} | Lanes: ${swimLanes.length}`
+          )}
         </Text>
       </View>
     </View>
@@ -192,11 +219,19 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ddd',
   },
+  containerMobile: {
+    marginVertical: 12,
+    padding: 10,
+  },
   title: {
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 15,
     color: '#333',
+  },
+  titleMobile: {
+    fontSize: 16,
+    marginBottom: 10,
   },
   timeMarkersContainer: {
     maxHeight: 500,
@@ -206,6 +241,10 @@ const styles = StyleSheet.create({
     paddingTop: 30,
     paddingLeft: 100, // Space for lane labels
   },
+  timelineContainerMobile: {
+    paddingTop: 25,
+    paddingLeft: 60,
+  },
   timeScale: {
     position: 'absolute',
     top: 0,
@@ -214,6 +253,11 @@ const styles = StyleSheet.create({
     height: 30,
     borderBottomWidth: 2,
     borderBottomColor: '#333',
+  },
+  timeScaleMobile: {
+    left: 60,
+    height: 25,
+    borderBottomWidth: 1.5,
   },
   timeMarker: {
     position: 'absolute',
@@ -229,6 +273,9 @@ const styles = StyleSheet.create({
     color: '#666',
     marginTop: 2,
   },
+  timeMarkerTextMobile: {
+    fontSize: 8,
+  },
   swimlanesContainer: {
     position: 'relative',
     marginTop: 10,
@@ -240,6 +287,9 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#ddd',
     flexDirection: 'row',
+  },
+  swimlaneMobile: {
+    left: 60,
   },
   laneLabel: {
     position: 'absolute',
@@ -253,11 +303,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 5,
   },
+  laneLabelMobile: {
+    left: -60,
+    width: 55,
+    paddingHorizontal: 3,
+  },
   laneLabelText: {
     fontSize: 12,
     fontWeight: '600',
     color: '#333',
     textAlign: 'center',
+  },
+  laneLabelTextMobile: {
+    fontSize: 10,
   },
   laneContent: {
     position: 'relative',
@@ -275,6 +333,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 4,
   },
+  noteBlockMobile: {
+    height: 35,
+    top: 3,
+    borderRadius: 3,
+    paddingHorizontal: 2,
+  },
   noteBlockHighlighted: {
     borderWidth: 3,
     borderColor: '#FF6B00',
@@ -289,6 +353,9 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#fff',
     textAlign: 'center',
+  },
+  noteTextMobile: {
+    fontSize: 8,
   },
   noteTextHighlighted: {
     fontSize: 12,
@@ -305,6 +372,9 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#666',
     textAlign: 'center',
+  },
+  legendTextMobile: {
+    fontSize: 10,
   },
 });
 

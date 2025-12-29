@@ -1,5 +1,5 @@
-import React from 'react';
-import {View, Text, StyleSheet, ScrollView, TouchableOpacity, Pressable} from 'react-native';
+import React, {useState, useEffect} from 'react';
+import {View, Text, StyleSheet, ScrollView, TouchableOpacity, Pressable, Dimensions} from 'react-native';
 import {PianoNote, generatePianoKeys} from '../utils/pianoNotes';
 
 interface PianoKeyboardProps {
@@ -26,6 +26,25 @@ const PianoKeyboard: React.FC<PianoKeyboardProps> = ({
   minRangeNote = null,
   maxRangeNote = null,
 }) => {
+  // Get screen dimensions for responsive design
+  const [screenData, setScreenData] = useState(Dimensions.get('window'));
+  
+  useEffect(() => {
+    const subscription = Dimensions.addEventListener('change', ({window}) => {
+      setScreenData(window);
+    });
+    return () => subscription?.remove();
+  }, []);
+
+  const isMobile = screenData.width < 768;
+  
+  // Calculate key widths based on screen size
+  const WHITE_KEY_WIDTH = isMobile ? 20 : 35;
+  const BLACK_KEY_WIDTH = isMobile ? 14 : 22;
+  const BLACK_KEY_OFFSET = isMobile ? 15 : 25;
+  const KEYBOARD_HEIGHT = isMobile ? 120 : 160;
+  const BLACK_KEY_HEIGHT = isMobile ? 70 : 100;
+
   // Get all piano keys
   const allKeys = generatePianoKeys();
 
@@ -46,6 +65,9 @@ const PianoKeyboard: React.FC<PianoKeyboardProps> = ({
     });
   
   const blackKeys = keysToDisplay.filter(key => key.name.includes('#'));
+
+  // Calculate total keyboard width based on number of white keys
+  const totalKeyboardWidth = whiteKeys.length * WHITE_KEY_WIDTH;
 
   // Check if a note is currently highlighted
   const isHighlighted = (note: PianoNote): boolean => {
@@ -94,23 +116,25 @@ const PianoKeyboard: React.FC<PianoKeyboardProps> = ({
     return whiteKeyIndex >= 0 ? whiteKeyIndex : 0;
   };
 
-  // Calculate white key width - slightly smaller for full keyboard
-  // With 88 keys, we'll use a reasonable width that allows horizontal scrolling
-  const WHITE_KEY_WIDTH = 35;
-  const BLACK_KEY_WIDTH = 22;
-  const BLACK_KEY_OFFSET = 25; // Position from left edge of white key
-
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Piano Keyboard</Text>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollViewContent}>
-        <View style={styles.keyboardContainer}>
+      <Text style={[styles.title, isMobile && styles.titleMobile]}>Piano Keyboard</Text>
+      <View style={styles.scrollViewWrapper}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={true}
+          style={[styles.scrollView, isMobile && styles.scrollViewMobile]}
+          contentContainerStyle={styles.scrollViewContent}
+          nestedScrollEnabled={true}>
+          <View style={[
+            styles.keyboardContainer,
+            {
+              height: KEYBOARD_HEIGHT,
+              width: totalKeyboardWidth,
+            }
+          ]}>
           {/* White keys */}
-          <View style={styles.whiteKeysContainer}>
+          <View style={[styles.whiteKeysContainer, {height: KEYBOARD_HEIGHT}]}>
           {whiteKeys.map((key) => (
             <TouchableOpacity
               key={key.name}
@@ -118,15 +142,17 @@ const PianoKeyboard: React.FC<PianoKeyboardProps> = ({
               onPress={() => onKeyPress && onKeyPress(key)}
               style={[
                 styles.whiteKey,
-                {width: WHITE_KEY_WIDTH},
+                {width: WHITE_KEY_WIDTH, height: KEYBOARD_HEIGHT},
                 isHighlighted(key) && styles.whiteKeyHighlighted,
                 isMinRangeNote(key) && styles.whiteKeyMinRange,
                 isMaxRangeNote(key) && styles.whiteKeyMaxRange,
                 rangeMode && isInRange(key) && !isMinRangeNote(key) && !isMaxRangeNote(key) && styles.whiteKeyInRange,
+                isMobile && styles.whiteKeyMobile,
               ]}>
               <Text
                 style={[
                   styles.whiteKeyText,
+                  isMobile && styles.whiteKeyTextMobile,
                   isHighlighted(key) && styles.whiteKeyTextHighlighted,
                   (isMinRangeNote(key) || isMaxRangeNote(key)) && styles.whiteKeyTextRange,
                 ]}>
@@ -137,7 +163,7 @@ const PianoKeyboard: React.FC<PianoKeyboardProps> = ({
         </View>
 
         {/* Black keys overlay */}
-        <View style={styles.blackKeysOverlay} pointerEvents="box-none">
+        <View style={[styles.blackKeysOverlay, {height: BLACK_KEY_HEIGHT}]} pointerEvents="box-none">
           {blackKeys.map(blackKey => {
             const whiteKeyIndex = getBlackKeyPosition(blackKey);
             if (whiteKeyIndex < 0) return null;
@@ -151,15 +177,18 @@ const PianoKeyboard: React.FC<PianoKeyboardProps> = ({
                   {
                     left: whiteKeyIndex * WHITE_KEY_WIDTH + BLACK_KEY_OFFSET,
                     width: BLACK_KEY_WIDTH,
+                    height: BLACK_KEY_HEIGHT,
                   },
                   isHighlighted(blackKey) && styles.blackKeyHighlighted,
                   isMinRangeNote(blackKey) && styles.blackKeyMinRange,
                   isMaxRangeNote(blackKey) && styles.blackKeyMaxRange,
                   rangeMode && isInRange(blackKey) && !isMinRangeNote(blackKey) && !isMaxRangeNote(blackKey) && styles.blackKeyInRange,
+                  isMobile && styles.blackKeyMobile,
                 ]}>
                 <Text
                   style={[
                     styles.blackKeyText,
+                    isMobile && styles.blackKeyTextMobile,
                     isHighlighted(blackKey) && styles.blackKeyTextHighlighted,
                     (isMinRangeNote(blackKey) || isMaxRangeNote(blackKey)) && styles.blackKeyTextRange,
                   ]}>
@@ -170,7 +199,8 @@ const PianoKeyboard: React.FC<PianoKeyboardProps> = ({
           })}
         </View>
         </View>
-      </ScrollView>
+        </ScrollView>
+      </View>
     </View>
   );
 };
@@ -185,6 +215,7 @@ const styles = StyleSheet.create({
     borderColor: '#ddd',
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden', // Ensure container doesn't overflow
   },
   title: {
     fontSize: 18,
@@ -193,19 +224,27 @@ const styles = StyleSheet.create({
     color: '#333',
     textAlign: 'center',
   },
+  scrollViewWrapper: {
+    width: '100%',
+    maxWidth: '100%',
+    overflow: 'hidden',
+  },
   scrollView: {
     maxHeight: 180,
+    width: '100%',
+  },
+  scrollViewMobile: {
+    maxHeight: 140,
   },
   scrollViewContent: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: 'flex-start',
+    justifyContent: 'flex-start',
     paddingVertical: 0,
   },
   keyboardContainer: {
     position: 'relative',
     height: 160,
     overflow: 'visible',
-    minWidth: 280, // Minimum width for at least a few keys
   },
   whiteKeysContainer: {
     flexDirection: 'row',
@@ -225,6 +264,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingBottom: 10,
   },
+  whiteKeyMobile: {
+    paddingBottom: 6,
+  },
   whiteKeyHighlighted: {
     backgroundColor: '#FFD700', // Gold highlight
     borderRightColor: '#FFA500',
@@ -239,6 +281,13 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: '#666',
     fontWeight: '500',
+  },
+  whiteKeyTextMobile: {
+    fontSize: 8,
+  },
+  titleMobile: {
+    fontSize: 16,
+    marginBottom: 10,
   },
   whiteKeyTextHighlighted: {
     color: '#333',
@@ -264,6 +313,9 @@ const styles = StyleSheet.create({
     paddingBottom: 6,
     zIndex: 10,
   },
+  blackKeyMobile: {
+    paddingBottom: 4,
+  },
   blackKeyHighlighted: {
     backgroundColor: '#FFD700', // Gold highlight
     borderWidth: 2,
@@ -278,6 +330,9 @@ const styles = StyleSheet.create({
     fontSize: 8,
     color: '#fff',
     fontWeight: '600',
+  },
+  blackKeyTextMobile: {
+    fontSize: 7,
   },
   blackKeyTextHighlighted: {
     color: '#333',

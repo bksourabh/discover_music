@@ -8,6 +8,7 @@ import {
   Alert,
   ActivityIndicator,
   Switch,
+  Dimensions,
 } from 'react-native';
 import {
   generateRandomNotes,
@@ -62,7 +63,85 @@ interface MainScreenProps {
   onLogout?: () => void;
 }
 
+// Responsive styles function
+const createResponsiveStyles = (isMobile: boolean, isTablet: boolean) => {
+  return StyleSheet.create({
+    container: {
+      paddingHorizontal: isMobile ? 0 : undefined,
+    },
+    content: {
+      padding: isMobile ? 12 : isTablet ? 16 : 20,
+    },
+    title: {
+      fontSize: isMobile ? 22 : isTablet ? 24 : 28,
+      marginBottom: isMobile ? 8 : 10,
+    },
+    userInfo: {
+      fontSize: isMobile ? 14 : 16,
+      marginBottom: isMobile ? 20 : 30,
+    },
+    button: {
+      padding: isMobile ? 12 : 15,
+      marginBottom: isMobile ? 12 : 15,
+      minHeight: isMobile ? 48 : 50,
+    },
+    buttonText: {
+      fontSize: isMobile ? 14 : 16,
+    },
+    checkboxContainer: {
+      padding: isMobile ? 8 : 10,
+      marginBottom: isMobile ? 12 : 15,
+    },
+    checkboxLabel: {
+      fontSize: isMobile ? 14 : 16,
+      marginLeft: isMobile ? 8 : 10,
+    },
+    sectionTitle: {
+      fontSize: isMobile ? 18 : 20,
+      marginBottom: isMobile ? 12 : 15,
+    },
+    recentItem: {
+      padding: isMobile ? 12 : 15,
+      marginBottom: isMobile ? 8 : 10,
+      flexDirection: isMobile ? 'column' : 'row',
+    },
+    recentItemText: {
+      fontSize: isMobile ? 14 : 16,
+    },
+    recentItemDate: {
+      fontSize: isMobile ? 11 : 12,
+    },
+    recentItemExportButton: {
+      paddingHorizontal: isMobile ? 12 : 15,
+      paddingVertical: isMobile ? 10 : 8,
+      marginLeft: isMobile ? 0 : 10,
+      marginTop: isMobile ? 8 : 0,
+      minHeight: isMobile ? 44 : undefined,
+    },
+    recentItemExportButtonText: {
+      fontSize: isMobile ? 13 : 14,
+    },
+    rangeInfoText: {
+      fontSize: isMobile ? 12 : 14,
+    },
+  });
+};
+
 const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
+  // Get screen dimensions for responsive design
+  const [screenData, setScreenData] = useState(Dimensions.get('window'));
+  
+  useEffect(() => {
+    const subscription = Dimensions.addEventListener('change', ({window}) => {
+      setScreenData(window);
+    });
+    return () => subscription?.remove();
+  }, []);
+
+  const isMobile = screenData.width < 768;
+  const isTablet = screenData.width >= 768 && screenData.width < 1024;
+  const dynamicStyles = createResponsiveStyles(isMobile, isTablet);
+
   // Generate note length options: 0.1 to 2.0 in 0.1 increments
   const noteLengthOptions = Array.from({length: 20}, (_, i) => {
     const value = (0.1 + i * 0.1).toFixed(1);
@@ -398,9 +477,9 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>Piano Note Generator</Text>
-      <Text style={styles.userInfo}>Welcome, {user.name}!</Text>
+    <ScrollView style={[styles.container, dynamicStyles.container]} contentContainerStyle={[styles.content, dynamicStyles.content]}>
+      <Text style={[styles.title, dynamicStyles.title]}>Piano Note Generator</Text>
+      <Text style={[styles.userInfo, dynamicStyles.userInfo]}>Welcome, {user.name}!</Text>
 
       <Dropdown
         label="Note Length (seconds)"
@@ -418,26 +497,26 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
 
       {/* Restore to Default Button */}
       <TouchableOpacity
-        style={[styles.button, styles.restoreButton]}
+        style={[styles.button, styles.restoreButton, dynamicStyles.button]}
         onPress={handleRestoreToDefault}>
-        <Text style={styles.buttonText}>Restore to Default</Text>
+        <Text style={[styles.buttonText, dynamicStyles.buttonText]}>Restore to Default</Text>
       </TouchableOpacity>
 
       {/* Range Mode Checkbox */}
-      <View style={styles.checkboxContainer}>
+      <View style={[styles.checkboxContainer, dynamicStyles.checkboxContainer]}>
         <Switch
           value={rangeMode}
           onValueChange={handleRangeModeToggle}
           trackColor={{false: '#767577', true: '#4CAF50'}}
           thumbColor={rangeMode ? '#fff' : '#f4f3f4'}
         />
-        <Text style={styles.checkboxLabel}>
+        <Text style={[styles.checkboxLabel, dynamicStyles.checkboxLabel]}>
           Select Piano Generation Range Mode
         </Text>
       </View>
       {rangeMode && (
         <View style={styles.rangeInfo}>
-          <Text style={styles.rangeInfoText}>
+          <Text style={[styles.rangeInfoText, dynamicStyles.rangeInfoText]}>
             {minRangeNote 
               ? `Min: ${minRangeNote.name}${maxRangeNote ? `, Max: ${maxRangeNote.name}` : ' (select max key)'}`
               : 'Select minimum key, then maximum key'}
@@ -446,27 +525,27 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
       )}
 
       {/* Use Sharps Checkbox */}
-      <View style={styles.checkboxContainer}>
+      <View style={[styles.checkboxContainer, dynamicStyles.checkboxContainer]}>
         <Switch
           value={useSharps}
           onValueChange={handleUseSharpsToggle}
           trackColor={{false: '#767577', true: '#4CAF50'}}
           thumbColor={useSharps ? '#fff' : '#f4f3f4'}
         />
-        <Text style={styles.checkboxLabel}>
+        <Text style={[styles.checkboxLabel, dynamicStyles.checkboxLabel]}>
           Use Sharps (Black Keys)
         </Text>
       </View>
 
       {/* Use Flats Checkbox */}
-      <View style={styles.checkboxContainer}>
+      <View style={[styles.checkboxContainer, dynamicStyles.checkboxContainer]}>
         <Switch
           value={useFlats}
           onValueChange={handleUseFlatsToggle}
           trackColor={{false: '#767577', true: '#4CAF50'}}
           thumbColor={useFlats ? '#fff' : '#f4f3f4'}
         />
-        <Text style={styles.checkboxLabel}>
+        <Text style={[styles.checkboxLabel, dynamicStyles.checkboxLabel]}>
           Use Flats (White Keys)
         </Text>
       </View>
@@ -483,13 +562,13 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
       />
 
       <TouchableOpacity
-        style={[styles.button, styles.generateButton, (isGenerating || isPlaying) && styles.buttonDisabled]}
+        style={[styles.button, styles.generateButton, dynamicStyles.button, (isGenerating || isPlaying) && styles.buttonDisabled]}
         onPress={handleGenerate}
         disabled={isGenerating || isPlaying}>
         {isGenerating ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text style={styles.buttonText}>Generate</Text>
+          <Text style={[styles.buttonText, dynamicStyles.buttonText]}>Generate</Text>
         )}
       </TouchableOpacity>
 
@@ -514,21 +593,21 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
       )}
 
       <TouchableOpacity
-        style={[styles.button, styles.playButton, (currentNotes.length === 0 || isPlaying || isGenerating) && styles.buttonDisabled]}
+        style={[styles.button, styles.playButton, dynamicStyles.button, (currentNotes.length === 0 || isPlaying || isGenerating) && styles.buttonDisabled]}
         onPress={handlePlay}
         disabled={currentNotes.length === 0 || isPlaying || isGenerating}>
         {isPlaying ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text style={styles.buttonText}>Play</Text>
+          <Text style={[styles.buttonText, dynamicStyles.buttonText]}>Play</Text>
         )}
       </TouchableOpacity>
 
       <TouchableOpacity
-        style={[styles.button, styles.downloadButton, (currentNotes.length === 0 || isPlaying || isGenerating) && styles.buttonDisabled]}
+        style={[styles.button, styles.downloadButton, dynamicStyles.button, (currentNotes.length === 0 || isPlaying || isGenerating) && styles.buttonDisabled]}
         onPress={handleDownloadCSV}
         disabled={currentNotes.length === 0 || isPlaying || isGenerating}>
-        <Text style={styles.buttonText}>Export Notes to CSV</Text>
+        <Text style={[styles.buttonText, dynamicStyles.buttonText]}>Export Notes to CSV</Text>
       </TouchableOpacity>
 
       {/* Audio Player Component - Hidden, handles playback (native only) */}
@@ -544,23 +623,23 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
 
       {recentSequences.length > 0 && (
         <View style={styles.recentContainer}>
-          <Text style={styles.sectionTitle}>Recent Sequences</Text>
+          <Text style={[styles.sectionTitle, dynamicStyles.sectionTitle]}>Recent Sequences</Text>
           {recentSequences.map((sequence, index) => (
-            <View key={sequence.id || index} style={styles.recentItem}>
+            <View key={sequence.id || index} style={[styles.recentItem, dynamicStyles.recentItem]}>
               <TouchableOpacity
                 style={styles.recentItemContent}
                 onPress={() => handleLoadRecent(sequence)}>
-                <Text style={styles.recentItemText}>
+                <Text style={[styles.recentItemText, dynamicStyles.recentItemText]}>
                   Sequence {index + 1} - {sequence.noteLength}s notes, {sequence.totalLength}s total
                 </Text>
-                <Text style={styles.recentItemDate}>
+                <Text style={[styles.recentItemDate, dynamicStyles.recentItemDate]}>
                   {new Date(sequence.createdAt).toLocaleString()}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={styles.recentItemExportButton}
+                style={[styles.recentItemExportButton, dynamicStyles.recentItemExportButton]}
                 onPress={() => handleExportRecentSequence(sequence)}>
-                <Text style={styles.recentItemExportButtonText}>Export to CSV</Text>
+                <Text style={[styles.recentItemExportButtonText, dynamicStyles.recentItemExportButtonText]}>Export to CSV</Text>
               </TouchableOpacity>
             </View>
           ))}
@@ -569,9 +648,9 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
 
       {onLogout && (
         <TouchableOpacity
-          style={[styles.button, styles.logoutButton]}
+          style={[styles.button, styles.logoutButton, dynamicStyles.button]}
           onPress={onLogout}>
-          <Text style={styles.buttonText}>Logout</Text>
+          <Text style={[styles.buttonText, dynamicStyles.buttonText]}>Logout</Text>
         </TouchableOpacity>
       )}
     </ScrollView>
