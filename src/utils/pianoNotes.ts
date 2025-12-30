@@ -147,3 +147,37 @@ export const stringToNotes = (notesString: string): PianoNote[] => {
   return JSON.parse(notesString);
 };
 
+/**
+ * Validate if a note string is a valid piano note
+ * Valid format: [C-D-E-F-G-A-B][#]?[0-8]
+ * Examples: C4, C#4, A0, B7, etc.
+ * @param noteString The note string to validate
+ * @returns true if valid, false otherwise
+ */
+export const isValidPianoNote = (noteString: string): boolean => {
+  // Regex pattern: Base note (C-D-E-F-G-A-B), optional sharp (#), octave (0-8)
+  const notePattern = /^[CDEFGAB](#)?[0-8]$/;
+  
+  if (!notePattern.test(noteString)) {
+    return false;
+  }
+  
+  // Check if the note exists in the piano keys
+  const matchingNote = ALL_PIANO_KEYS.find(key => key.name === noteString);
+  return matchingNote !== undefined;
+};
+
+/**
+ * Convert a valid note string to a PianoNote object
+ * @param noteString The note string to convert
+ * @returns PianoNote if valid, null otherwise
+ */
+export const stringToPianoNote = (noteString: string): PianoNote | null => {
+  if (!isValidPianoNote(noteString)) {
+    return null;
+  }
+  
+  const matchingNote = ALL_PIANO_KEYS.find(key => key.name === noteString);
+  return matchingNote || null;
+};
+

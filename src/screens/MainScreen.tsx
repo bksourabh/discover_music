@@ -9,6 +9,8 @@ import {
   ActivityIndicator,
   Switch,
   Dimensions,
+  TextInput,
+  Pressable,
 } from 'react-native';
 import {
   generateRandomNotes,
@@ -17,6 +19,8 @@ import {
   PianoNote,
   compareNotes,
   generatePianoKeys,
+  isValidPianoNote,
+  stringToPianoNote,
 } from '../utils/pianoNotes';
 import PianoKeyboard from '../components/PianoKeyboard';
 import Dropdown from '../components/Dropdown';
@@ -155,18 +159,23 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
     return {label: `${value}s`, value};
   });
 
-  const [noteLength, setNoteLength] = useState<string>('0.5');
-  const [totalLength, setTotalLength] = useState<string>('15');
+  const [noteLength, setNoteLength] = useState<string>('0.3');
+  const [totalLength, setTotalLength] = useState<string>('7');
   const [currentNotes, setCurrentNotes] = useState<PianoNote[]>([]);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [recentSequences, setRecentSequences] = useState<NoteSequence[]>([]);
   const [highlightedNote, setHighlightedNote] = useState<PianoNote | null>(null);
+  const [hoveredNote, setHoveredNote] = useState<PianoNote | null>(null);
   const [rangeMode, setRangeMode] = useState(false);
   const [minRangeNote, setMinRangeNote] = useState<PianoNote | null>(null);
   const [maxRangeNote, setMaxRangeNote] = useState<PianoNote | null>(null);
   const [useSharps, setUseSharps] = useState(true);
   const [useFlats, setUseFlats] = useState(true);
+  const [editingNoteIndex, setEditingNoteIndex] = useState<number | null>(null);
+  const [editingNoteValue, setEditingNoteValue] = useState<string>('');
+  const [originalNoteValue, setOriginalNoteValue] = useState<string>('');
+  const [noteErrors, setNoteErrors] = useState<{[index: number]: boolean}>({});
 
   useEffect(() => {
     loadRecentSequences();
@@ -625,8 +634,8 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
     await stopAllSounds();
     
     // Reset all state to default values
-    setNoteLength('0.5');
-    setTotalLength('15');
+    setNoteLength('0.3');
+    setTotalLength('7');
     setCurrentNotes([]);
     setIsPlaying(false);
     setHighlightedNote(null);
@@ -635,6 +644,75 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
     setMaxRangeNote(null);
     setUseSharps(true);
     setUseFlats(true);
+    setEditingNoteIndex(null);
+    setEditingNoteValue('');
+    setOriginalNoteValue('');
+    setNoteErrors({});
+  };
+
+  const handleNoteEditStart = (index: number, currentNote: PianoNote) => {
+    setEditingNoteIndex(index);
+    setEditingNoteValue(currentNote.name);
+    setOriginalNoteValue(currentNote.name);
+    // Clear any previous error for this note
+    const newErrors = {...noteErrors};
+    delete newErrors[index];
+    setNoteErrors(newErrors);
+  };
+
+  const handleNoteEditChange = (index: number, value: string) => {
+    setEditingNoteValue(value);
+    // Clear error while typing
+    const newErrors = {...noteErrors};
+    delete newErrors[index];
+    setNoteErrors(newErrors);
+  };
+
+  const handleNoteEditEnd = (index: number) => {
+    const trimmedValue = editingNoteValue.trim().toUpperCase();
+    
+    // Validate the note
+    if (isValidPianoNote(trimmedValue)) {
+      const newNote = stringToPianoNote(trimmedValue);
+      if (newNote) {
+        // Update the note in the array
+        const updatedNotes = [...currentNotes];
+        updatedNotes[index] = newNote;
+        setCurrentNotes(updatedNotes);
+        
+        // Clear error
+        const newErrors = {...noteErrors};
+        delete newErrors[index];
+        setNoteErrors(newErrors);
+      } else {
+        // Should not happen if isValidPianoNote returned true, but handle it
+        handleNoteEditCancel(index);
+      }
+    } else {
+      // Invalid note - show error and revert
+      const newErrors = {...noteErrors};
+      newErrors[index] = true;
+      setNoteErrors(newErrors);
+      
+      // Revert to original note after a brief delay to show the error
+      setTimeout(() => {
+        handleNoteEditCancel(index);
+      }, 1500);
+    }
+    
+    setEditingNoteIndex(null);
+    setEditingNoteValue('');
+  };
+
+  const handleNoteEditCancel = (index: number) => {
+    // Revert to original note - the note in currentNotes is already correct
+    // since we only update it when validation passes
+    setEditingNoteIndex(null);
+    setEditingNoteValue('');
+    setOriginalNoteValue('');
+    const newErrors = {...noteErrors};
+    delete newErrors[index];
+    setNoteErrors(newErrors);
   };
 
   return (
@@ -713,7 +791,7 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
 
       {/* Piano Keyboard - Full 88-key range (A0 to C8) */}
       <PianoKeyboard
-        highlightedNote={highlightedNote}
+        highlightedNote={hoveredNote || highlightedNote}
         startOctave={0}
         endOctave={8}
         onKeyPress={handleKeyPress}
@@ -740,9 +818,47 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
               Generated {currentNotes.length} notes
             </Text>
             <Text style={styles.infoText}>
-              Notes: {currentNotes.slice(0, 5).map(n => n.name).join(', ')}
-              {currentNotes.length > 5 ? '...' : ''}
+              Click on any note to edit it:
             </Text>
+            <View style={styles.notesContainer}>
+              {currentNotes.map((note, index) => (
+                <View key={index} style={styles.noteItem}>
+                  {editingNoteIndex === index ? (
+                    <TextInput
+                      style={[
+                        styles.noteInput,
+                        noteErrors[index] && styles.noteInputError,
+                      ]}
+                      value={editingNoteValue}
+                      onChangeText={(value) => handleNoteEditChange(index, value)}
+                      onBlur={() => handleNoteEditEnd(index)}
+                      onSubmitEditing={() => handleNoteEditEnd(index)}
+                      autoFocus
+                      placeholder={note.name}
+                      placeholderTextColor="#999"
+                    />
+                  ) : (
+                    <Pressable
+                      style={({pressed}) => [
+                        styles.noteButton,
+                        pressed && styles.noteButtonPressed,
+                      ]}
+                      onPress={() => handleNoteEditStart(index, note)}
+                      // @ts-ignore - onMouseEnter/onMouseLeave are available in React Native Web
+                      onMouseEnter={() => setHoveredNote(note)}
+                      // @ts-ignore - onMouseEnter/onMouseLeave are available in React Native Web
+                      onMouseLeave={() => setHoveredNote(null)}
+                      onPressIn={() => setHoveredNote(note)}
+                      onPressOut={() => setHoveredNote(null)}>
+                      <Text style={styles.noteButtonText}>{note.name}</Text>
+                    </Pressable>
+                  )}
+                  {noteErrors[index] && (
+                    <Text style={styles.noteErrorText}>Invalid note</Text>
+                  )}
+                </View>
+              ))}
+            </View>
           </View>
           <TimelineView
             notes={currentNotes}
@@ -962,6 +1078,54 @@ const styles = StyleSheet.create({
   rangeInfoText: {
     fontSize: 14,
     color: '#1976d2',
+    textAlign: 'center',
+  },
+  notesContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: 10,
+  },
+  noteItem: {
+    marginRight: 8,
+    marginBottom: 8,
+  },
+  noteButton: {
+    backgroundColor: '#2196F3',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 6,
+    minWidth: 50,
+    alignItems: 'center',
+  },
+  noteButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  noteButtonPressed: {
+    opacity: 0.8,
+  },
+  noteInput: {
+    backgroundColor: '#fff',
+    borderWidth: 2,
+    borderColor: '#2196F3',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 6,
+    minWidth: 50,
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
+    color: '#333',
+  },
+  noteInputError: {
+    borderColor: '#f44336',
+    backgroundColor: '#ffebee',
+  },
+  noteErrorText: {
+    color: '#f44336',
+    fontSize: 10,
+    marginTop: 2,
     textAlign: 'center',
   },
 });
