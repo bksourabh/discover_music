@@ -12,6 +12,7 @@ const fadeIntervals: Map<HTMLAudioElement, ReturnType<typeof setInterval>> = new
 
 /**
  * Fade out an audio element smoothly over a specified duration
+ * Uses exponential fade for more natural sound
  */
 const fadeOutAudio = (audio: HTMLAudioElement, fadeDuration: number): Promise<void> => {
   return new Promise((resolve) => {
@@ -21,15 +22,16 @@ const fadeOutAudio = (audio: HTMLAudioElement, fadeDuration: number): Promise<vo
       clearInterval(existingInterval);
     }
     
-    const fadeSteps = 20; // Number of steps for smooth fade
+    const fadeSteps = 30; // Increased steps for smoother fade
     const stepDuration = fadeDuration / fadeSteps;
-    const volumeStep = audio.volume / fadeSteps;
     let currentStep = 0;
     const startVolume = audio.volume;
     
     const fadeInterval = setInterval(() => {
       currentStep++;
-      const newVolume = Math.max(0, startVolume - (currentStep * volumeStep));
+      // Use exponential fade for more natural sound (ease-out curve)
+      const progress = currentStep / fadeSteps;
+      const newVolume = Math.max(0, startVolume * (1.0 - (progress * progress))); // Quadratic ease-out
       
       try {
         if (audio && !audio.paused) {
@@ -77,10 +79,11 @@ export const playNote = async (note: PianoNote, duration: number): Promise<void>
       // 2. Ensure volume is set before loading (Safari quirk)
       audio.volume = 1.0;
       
-      const fadeDuration = 150; // Fade out duration in milliseconds
+      const fadeDuration = 250; // Fade out duration in milliseconds (increased for more subtle effect)
       let stopTimer: ReturnType<typeof setTimeout> | null = null;
       let fadeTimer: ReturnType<typeof setTimeout> | null = null;
       let completed = false;
+      let isFading = false;
       let loadTimeout: ReturnType<typeof setTimeout> | null = null;
       
       const cleanup = async (shouldFade: boolean = false) => {
@@ -112,10 +115,11 @@ export const playNote = async (note: PianoNote, duration: number): Promise<void>
           }
           
           if (!audio.paused) {
-            if (shouldFade) {
+            if (shouldFade && !isFading) {
               // Fade out smoothly
+              isFading = true;
               await fadeOutAudio(audio, fadeDuration);
-            } else {
+            } else if (!shouldFade) {
               // Immediate stop (for errors)
               audio.pause();
               audio.currentTime = 0;
@@ -138,7 +142,8 @@ export const playNote = async (note: PianoNote, duration: number): Promise<void>
       const setupFadeOut = () => {
         if (completed) return;
         fadeTimer = setTimeout(async () => {
-          if (!completed && !audio.paused) {
+          if (!completed && !audio.paused && !isFading) {
+            isFading = true;
             await fadeOutAudio(audio, fadeDuration);
           }
         }, fadeStartTime);
@@ -155,6 +160,11 @@ export const playNote = async (note: PianoNote, duration: number): Promise<void>
       
       // Handle natural end of audio (if it's shorter than duration)
       audio.onended = async () => {
+        // Apply fade-out even if audio ended naturally
+        if (!isFading && !audio.paused) {
+          isFading = true;
+          await fadeOutAudio(audio, fadeDuration);
+        }
         await cleanup(false);
         resolve();
       };
@@ -291,7 +301,7 @@ export const stopAllSounds = async (): Promise<void> => {
   const fadePromises: Promise<void>[] = [];
   activeAudioElements.forEach((audio) => {
     if (!audio.paused) {
-      fadePromises.push(fadeOutAudio(audio, 150));
+      fadePromises.push(fadeOutAudio(audio, 250)); // Use same fade duration as playNote
     }
   });
   await Promise.all(fadePromises);
