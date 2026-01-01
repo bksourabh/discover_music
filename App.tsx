@@ -57,6 +57,16 @@ const App: React.FC = () => {
     setUser(null);
   };
 
+  const handleContinueWithoutLogin = () => {
+    // Create a guest user object
+    const guestUser: User = {
+      id: 'guest',
+      name: 'Guest',
+      provider: 'google', // Default provider, not used for guest
+    };
+    setUser(guestUser);
+  };
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -70,7 +80,10 @@ const App: React.FC = () => {
       {user ? (
         <MainScreen user={user} onLogout={handleLogout} />
       ) : (
-        <LoginScreen onLoginSuccess={handleLoginSuccess} />
+        <LoginScreen 
+          onLoginSuccess={handleLoginSuccess} 
+          onContinueWithoutLogin={handleContinueWithoutLogin}
+        />
       )}
     </View>
   );

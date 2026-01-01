@@ -26,9 +26,10 @@ interface User {
 
 interface LoginScreenProps {
   onLoginSuccess: (user: User) => void;
+  onContinueWithoutLogin?: () => void;
 }
 
-const LoginScreen: React.FC<LoginScreenProps> = ({onLoginSuccess}) => {
+const LoginScreen: React.FC<LoginScreenProps> = ({onLoginSuccess, onContinueWithoutLogin}) => {
   const [loading, setLoading] = useState<string | null>(null);
 
   const handleGoogleSignIn = async () => {
@@ -116,6 +117,15 @@ const LoginScreen: React.FC<LoginScreenProps> = ({onLoginSuccess}) => {
           <Text style={styles.buttonText}>Sign in with Apple</Text>
         )}
       </TouchableOpacity>
+
+      {onContinueWithoutLogin && (
+        <TouchableOpacity
+          style={[styles.button, styles.guestButton]}
+          onPress={onContinueWithoutLogin}
+          disabled={loading !== null}>
+          <Text style={styles.guestButtonText}>Continue without logging in</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 };
@@ -158,8 +168,19 @@ const styles = StyleSheet.create({
   appleButton: {
     backgroundColor: '#000',
   },
+  guestButton: {
+    backgroundColor: '#fff',
+    borderWidth: 2,
+    borderColor: '#666',
+    marginTop: 10,
+  },
   buttonText: {
     color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  guestButtonText: {
+    color: '#666',
     fontSize: 16,
     fontWeight: '600',
   },
