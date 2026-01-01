@@ -63,16 +63,25 @@ const fadeOutAudio = (audio: HTMLAudioElement, fadeDuration: number): Promise<vo
 
 /**
  * Play a single note using HTML5 Audio with MP3 files
+ * Safari-compatible implementation with proper loading and playback handling
  */
 export const playNote = async (note: PianoNote, duration: number): Promise<void> => {
   return new Promise((resolve, reject) => {
     try {
       const audioPath = getMp3Path(note, true);
       const audio = new Audio(audioPath);
+      
+      // Safari-specific fixes:
+      // 1. Set preload to auto for Safari
+      audio.preload = 'auto';
+      // 2. Ensure volume is set before loading (Safari quirk)
+      audio.volume = 1.0;
+      
       const fadeDuration = 150; // Fade out duration in milliseconds
       let stopTimer: ReturnType<typeof setTimeout> | null = null;
       let fadeTimer: ReturnType<typeof setTimeout> | null = null;
       let completed = false;
+      let loadTimeout: ReturnType<typeof setTimeout> | null = null;
       
       const cleanup = async (shouldFade: boolean = false) => {
         if (!completed) {
@@ -84,6 +93,10 @@ export const playNote = async (note: PianoNote, duration: number): Promise<void>
           if (fadeTimer) {
             clearTimeout(fadeTimer);
             fadeTimer = null;
+          }
+          if (loadTimeout) {
+            clearTimeout(loadTimeout);
+            loadTimeout = null;
           }
           
           const index = activeAudioElements.indexOf(audio);
@@ -121,18 +134,24 @@ export const playNote = async (note: PianoNote, duration: number): Promise<void>
       // Calculate when to start fade out (before the note ends)
       const fadeStartTime = Math.max(0, (duration * 1000) - fadeDuration);
       
-      // Set up fade-out timer
-      fadeTimer = setTimeout(async () => {
-        if (!completed && !audio.paused) {
-          await fadeOutAudio(audio, fadeDuration);
-        }
-      }, fadeStartTime);
+      // Set up fade-out timer (will be set after audio starts playing)
+      const setupFadeOut = () => {
+        if (completed) return;
+        fadeTimer = setTimeout(async () => {
+          if (!completed && !audio.paused) {
+            await fadeOutAudio(audio, fadeDuration);
+          }
+        }, fadeStartTime);
+      };
       
-      // Stop after specified duration (slightly after fade completes)
-      stopTimer = setTimeout(async () => {
-        await cleanup(false);
-        resolve();
-      }, duration * 1000);
+      // Set up stop timer (will be set after audio starts playing)
+      const setupStopTimer = () => {
+        if (completed) return;
+        stopTimer = setTimeout(async () => {
+          await cleanup(false);
+          resolve();
+        }, duration * 1000);
+      };
       
       // Handle natural end of audio (if it's shorter than duration)
       audio.onended = async () => {
@@ -140,13 +159,66 @@ export const playNote = async (note: PianoNote, duration: number): Promise<void>
         resolve();
       };
       
-      // Start playback
-      audio.volume = 1.0;
-      audio.play().catch(async (error) => {
-        console.error(`Error playing audio: ${audioPath}`, error);
-        await cleanup(false);
-        reject(error);
-      });
+      // Safari-compatible playback function
+      const startPlayback = () => {
+        if (completed) return;
+        
+        // Safari fix: Reset currentTime before playing to ensure clean playback
+        audio.currentTime = 0;
+        
+        setupFadeOut();
+        setupStopTimer();
+        
+        // Start playback - Safari requires proper error handling
+        const playPromise = audio.play();
+        
+        if (playPromise !== undefined) {
+          playPromise.catch(async (error) => {
+            console.error(`Error playing audio: ${audioPath}`, error);
+            await cleanup(false);
+            reject(error);
+          });
+        }
+      };
+      
+      // For Safari: explicitly load and wait for audio to be ready
+      // Safari requires load() to be called and audio to be ready before play()
+      const loadAudio = () => {
+        // Check if audio is already loaded enough to play
+        if (audio.readyState >= 2) { // HAVE_CURRENT_DATA = 2
+          startPlayback();
+          return;
+        }
+        
+        // Set up timeout for loading
+        loadTimeout = setTimeout(() => {
+          // Safari sometimes works even if readyState isn't 2, so try anyway
+          startPlayback();
+        }, 100);
+        
+        // Listen for when audio is ready to play
+        const onCanPlay = () => {
+          if (loadTimeout) {
+            clearTimeout(loadTimeout);
+            loadTimeout = null;
+          }
+          audio.removeEventListener('canplay', onCanPlay);
+          audio.removeEventListener('canplaythrough', onCanPlay);
+          audio.removeEventListener('loadeddata', onCanPlay);
+          startPlayback();
+        };
+        
+        // Try multiple events for better browser compatibility
+        audio.addEventListener('canplay', onCanPlay, { once: true });
+        audio.addEventListener('canplaythrough', onCanPlay, { once: true });
+        audio.addEventListener('loadeddata', onCanPlay, { once: true });
+        
+        // Explicitly call load() for Safari compatibility
+        audio.load();
+      };
+      
+      // Start loading audio
+      loadAudio();
       
       // Track active audio
       activeAudioElements.push(audio);
@@ -162,19 +234,54 @@ export const playNoteSequence = async (
   notes: PianoNote[],
   noteLength: number,
   onNoteStart?: (note: PianoNote) => void,
-  onNoteEnd?: (note: PianoNote) => void
+  onNoteEnd?: (note: PianoNote) => void,
+  onTimeUpdate?: (time: number) => void
 ): Promise<void> => {
   // Stop any currently playing sounds
   await stopAllSounds();
   
-  // Play notes sequentially
-  for (const note of notes) {
-    if (onNoteStart) {
-      onNoteStart(note);
+  let currentTime = 0;
+  const updateInterval = 50; // Update every 50ms for smooth progress indication
+  
+  // Set up interval to update progress
+  let progressInterval: ReturnType<typeof setInterval> | null = null;
+  if (onTimeUpdate) {
+    progressInterval = setInterval(() => {
+      if (onTimeUpdate) {
+        onTimeUpdate(currentTime);
+      }
+    }, updateInterval);
+  }
+  
+  try {
+    // Play notes sequentially
+    for (let i = 0; i < notes.length; i++) {
+      const note = notes[i];
+      if (onNoteStart) {
+        onNoteStart(note);
+      }
+      
+      // Update time at the start of each note
+      if (onTimeUpdate) {
+        onTimeUpdate(currentTime);
+      }
+      
+      await playNote(note, noteLength);
+      currentTime += noteLength;
+      
+      // Update time after each note
+      if (onTimeUpdate) {
+        onTimeUpdate(currentTime);
+      }
+      
+      if (onNoteEnd) {
+        onNoteEnd(note);
+      }
     }
-    await playNote(note, noteLength);
-    if (onNoteEnd) {
-      onNoteEnd(note);
+  } finally {
+    // Clear interval when done
+    if (progressInterval) {
+      clearInterval(progressInterval);
     }
   }
 };

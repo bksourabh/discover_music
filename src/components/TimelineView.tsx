@@ -9,6 +9,7 @@ interface TimelineViewProps {
   highlightedNote?: PianoNote | null;
   instrumentName?: string; // Optional instrument name, defaults to "Piano"
   placeholders?: (PianoNote | null)[]; // Optional array of notes and placeholders for user-generated mode
+  currentPlaybackTime?: number; // Current playback time in seconds for progress indicator
 }
 
 interface SwimLane {
@@ -31,6 +32,7 @@ const TimelineView: React.FC<TimelineViewProps> = ({
   highlightedNote,
   instrumentName = 'Piano',
   placeholders,
+  currentPlaybackTime,
 }) => {
   // Get screen dimensions for responsive design
   const [screenData, setScreenData] = useState(Dimensions.get('window'));
@@ -56,6 +58,11 @@ const TimelineView: React.FC<TimelineViewProps> = ({
   const timelineWidth = totalLength * pixelsPerSecond;
   const noteWidth = noteLength * pixelsPerSecond;
   const laneHeight = isMobile ? 45 : 60;
+  
+  // Calculate progress indicator position
+  const progressPosition = currentPlaybackTime !== undefined && currentPlaybackTime >= 0
+    ? Math.min(currentPlaybackTime * pixelsPerSecond, timelineWidth)
+    : undefined;
 
   // Generate time markers for each second with their positions
   const timeMarkers = [];
@@ -128,7 +135,7 @@ const TimelineView: React.FC<TimelineViewProps> = ({
             styles.timelineContainer, 
             isMobile && styles.timelineContainerMobile,
             {
-              width: timelineWidth,
+              width: (isMobile ? 60 : 100) + timelineWidth, // Add space for lane labels
               minHeight: swimLanes.length * laneHeight + (isMobile ? 30 : 40),
             }
           ]}>
@@ -146,6 +153,21 @@ const TimelineView: React.FC<TimelineViewProps> = ({
                   </View>
               ))}
             </View>
+
+            {/* Progress Indicator */}
+            {progressPosition !== undefined && (
+              <View
+                style={[
+                  styles.progressIndicator,
+                  isMobile && styles.progressIndicatorMobile,
+                  {
+                    left: (isMobile ? 60 : 100) + progressPosition,
+                    top: isMobile ? 25 : 30,
+                    height: swimLanes.length * laneHeight,
+                  },
+                ]}
+              />
+            )}
 
             {/* Swimlanes */}
             <View style={styles.swimlanesContainer}>
@@ -283,11 +305,11 @@ const styles = StyleSheet.create({
   timelineContainer: {
     position: 'relative',
     paddingTop: 30,
-    paddingLeft: 100, // Space for lane labels
+    paddingLeft: 0, // No padding - we'll position elements absolutely
   },
   timelineContainerMobile: {
     paddingTop: 25,
-    paddingLeft: 60,
+    paddingLeft: 0,
   },
   timeScale: {
     position: 'absolute',
@@ -430,6 +452,22 @@ const styles = StyleSheet.create({
   },
   legendTextMobile: {
     fontSize: 10,
+  },
+  progressIndicator: {
+    position: 'absolute',
+    top: 30,
+    width: 3,
+    backgroundColor: '#FF0000',
+    zIndex: 100,
+    shadowColor: '#FF0000',
+    shadowOffset: {width: 0, height: 0},
+    shadowOpacity: 0.8,
+    shadowRadius: 4,
+    elevation: 10,
+  },
+  progressIndicatorMobile: {
+    top: 25,
+    width: 2,
   },
 });
 

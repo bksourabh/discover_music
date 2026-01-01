@@ -177,6 +177,8 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
   const [originalNoteValue, setOriginalNoteValue] = useState<string>('');
   const [noteErrors, setNoteErrors] = useState<{[index: number]: boolean}>({});
   const [generationMode, setGenerationMode] = useState<'auto' | 'user'>('auto');
+  const [generatingNoteIndex, setGeneratingNoteIndex] = useState<number | null>(null);
+  const [currentPlaybackTime, setCurrentPlaybackTime] = useState<number>(0);
 
   useEffect(() => {
     loadRecentSequences();
@@ -242,23 +244,55 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
       const numNotes = Math.floor(totalLengthNum / noteLengthNum);
       const placeholders: (PianoNote | null)[] = new Array(numNotes).fill(null);
       setCurrentNotes(placeholders);
+      setGeneratingNoteIndex(null);
       return;
     }
 
     setIsGenerating(true);
+    setGeneratingNoteIndex(null);
     await stopAllSounds();
 
     try {
-      // Generate random notes with optional range and sharp/flat filters
-      const notes = generateRandomNotes(
-        noteLengthNum, 
-        totalLengthNum,
-        rangeMode && minRangeNote && maxRangeNote ? minRangeNote : undefined,
-        rangeMode && minRangeNote && maxRangeNote ? maxRangeNote : undefined,
-        useSharps,
-        useFlats
-      );
-      setCurrentNotes(notes);
+      const numNotes = Math.floor(totalLengthNum / noteLengthNum);
+      const notes: PianoNote[] = [];
+      
+      // Get available keys based on filters (same logic as generateRandomNotes)
+      let availableKeys = generatePianoKeys();
+      if (rangeMode && minRangeNote && maxRangeNote) {
+        availableKeys = availableKeys.filter(key => 
+          key.frequency >= minRangeNote.frequency && key.frequency <= maxRangeNote.frequency
+        );
+      }
+      
+      if (!useSharps || !useFlats) {
+        availableKeys = availableKeys.filter(key => {
+          const isSharp = key.name.includes('#');
+          if (!useSharps && isSharp) return false;
+          if (!useFlats && !isSharp) return false;
+          return true;
+        });
+      }
+      
+      if (availableKeys.length === 0) {
+        availableKeys = generatePianoKeys();
+      }
+
+      // Generate notes progressively with a small delay to show highlighting
+      setCurrentNotes([]);
+      for (let i = 0; i < numNotes; i++) {
+        setGeneratingNoteIndex(i);
+        const randomIndex = Math.floor(Math.random() * availableKeys.length);
+        const newNote = availableKeys[randomIndex];
+        notes.push(newNote);
+        
+        // Update currentNotes with the new note
+        setCurrentNotes([...notes]);
+        
+        // Small delay to show the progressive generation (50ms per note)
+        await new Promise(resolve => setTimeout(resolve, 50));
+      }
+      
+      setGeneratingNoteIndex(null);
 
       // Save to recent sequences (filter out null placeholders)
       const validNotes = notes.filter((note): note is PianoNote => note !== null);
@@ -275,6 +309,7 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
       // Auto-play the generated sequence
       setIsPlaying(true);
       setHighlightedNote(null);
+      setCurrentPlaybackTime(0);
       if (isWeb) {
         try {
           const {playNoteSequence} = require('../utils/audioPlayer.web');
@@ -282,19 +317,23 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
             notes,
             noteLengthNum,
             (note: PianoNote) => setHighlightedNote(note),
-            () => {} // onNoteEnd - no action needed
+            () => {}, // onNoteEnd - no action needed
+            (time: number) => setCurrentPlaybackTime(time) // onTimeUpdate - update progress
           );
           setIsPlaying(false);
           setHighlightedNote(null);
+          setCurrentPlaybackTime(0);
         } catch (error) {
           console.error('Error playing notes:', error);
           setIsPlaying(false);
           setHighlightedNote(null);
+          setCurrentPlaybackTime(0);
         }
       }
     } catch (error) {
       console.error('Error generating notes:', error);
       Alert.alert('Error', 'Failed to generate notes');
+      setGeneratingNoteIndex(null);
     } finally {
       setIsGenerating(false);
     }
@@ -315,6 +354,7 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
 
     setIsPlaying(true);
     setHighlightedNote(null);
+    setCurrentPlaybackTime(0);
     await stopAllSounds();
     
     // For web, play directly using Web Audio API
@@ -325,14 +365,17 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
           validNotes,
           parseFloat(noteLength),
           (note: PianoNote) => setHighlightedNote(note),
-          () => {} // onNoteEnd - no action needed
+          () => {}, // onNoteEnd - no action needed
+          (time: number) => setCurrentPlaybackTime(time) // onTimeUpdate - update progress
         );
         setIsPlaying(false);
         setHighlightedNote(null);
+        setCurrentPlaybackTime(0);
       } catch (error) {
         console.error('Error playing notes:', error);
         setIsPlaying(false);
         setHighlightedNote(null);
+        setCurrentPlaybackTime(0);
       }
     }
     // For native, playback is handled by AudioPlayer component
@@ -341,6 +384,7 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
   const handlePlayComplete = () => {
     setIsPlaying(false);
     setHighlightedNote(null);
+    setCurrentPlaybackTime(0);
   };
 
   const exportSequenceToCSV = (notes: (PianoNote | null)[], noteLengthValue: number, filename?: string) => {
@@ -548,6 +592,7 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
             // Auto-play the loaded sequence
             setIsPlaying(true);
             setHighlightedNote(null);
+            setCurrentPlaybackTime(0);
             await stopAllSounds();
             
             try {
@@ -556,14 +601,17 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
                 parsedNotes,
                 parsedNoteLength,
                 (note: PianoNote) => setHighlightedNote(note),
-                () => {} // onNoteEnd - no action needed
+                () => {}, // onNoteEnd - no action needed
+                (time: number) => setCurrentPlaybackTime(time) // onTimeUpdate - update progress
               );
               setIsPlaying(false);
               setHighlightedNote(null);
+              setCurrentPlaybackTime(0);
             } catch (error) {
               console.error('Error playing notes:', error);
               setIsPlaying(false);
               setHighlightedNote(null);
+              setCurrentPlaybackTime(0);
             }
           } catch (error) {
             console.error('Error parsing CSV:', error);
@@ -989,50 +1037,55 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
                 : 'Click on any note to edit it:'}
             </Text>
             <View style={styles.notesContainer}>
-              {currentNotes.map((note, index) => (
-                <View key={index} style={styles.noteItem}>
-                  {editingNoteIndex === index && note !== null ? (
-                    <TextInput
-                      style={[
-                        styles.noteInput,
-                        noteErrors[index] && styles.noteInputError,
-                      ]}
-                      value={editingNoteValue}
-                      onChangeText={(value) => handleNoteEditChange(index, value)}
-                      onBlur={() => handleNoteEditEnd(index)}
-                      onSubmitEditing={() => handleNoteEditEnd(index)}
-                      autoFocus
-                      placeholder={note.name}
-                      placeholderTextColor="#999"
-                    />
-                  ) : (
-                    <Pressable
-                      style={({pressed}) => [
-                        styles.noteButton,
-                        pressed && styles.noteButtonPressed,
-                        note === null && styles.noteButtonPlaceholder,
-                      ]}
-                      onPress={() => note !== null && handleNoteEditStart(index, note)}
-                      disabled={note === null}
-                      // @ts-ignore - onMouseEnter/onMouseLeave are available in React Native Web
-                      onMouseEnter={() => note && setHoveredNote(note)}
-                      // @ts-ignore - onMouseEnter/onMouseLeave are available in React Native Web
-                      onMouseLeave={() => setHoveredNote(null)}
-                      onPressIn={() => note && setHoveredNote(note)}
-                      onPressOut={() => setHoveredNote(null)}>
-                      <Text style={[
-                        styles.noteButtonText,
-                        note === null && styles.noteButtonTextPlaceholder,
-                      ]}>
-                        {note === null ? '?' : note.name}
-                      </Text>
-                    </Pressable>
-                  )}
-                  {noteErrors[index] && (
-                    <Text style={styles.noteErrorText}>Invalid note</Text>
-                  )}
-                </View>
-              ))}
+              {currentNotes.map((note, index) => {
+                const isCurrentlyGenerating = generationMode === 'auto' && isGenerating && generatingNoteIndex === index;
+                return (
+                  <View key={index} style={styles.noteItem}>
+                    {editingNoteIndex === index && note !== null ? (
+                      <TextInput
+                        style={[
+                          styles.noteInput,
+                          noteErrors[index] && styles.noteInputError,
+                        ]}
+                        value={editingNoteValue}
+                        onChangeText={(value) => handleNoteEditChange(index, value)}
+                        onBlur={() => handleNoteEditEnd(index)}
+                        onSubmitEditing={() => handleNoteEditEnd(index)}
+                        autoFocus
+                        placeholder={note.name}
+                        placeholderTextColor="#999"
+                      />
+                    ) : (
+                      <Pressable
+                        style={({pressed}) => [
+                          styles.noteButton,
+                          pressed && styles.noteButtonPressed,
+                          note === null && styles.noteButtonPlaceholder,
+                          isCurrentlyGenerating && styles.noteButtonGenerating,
+                        ]}
+                        onPress={() => note !== null && handleNoteEditStart(index, note)}
+                        disabled={note === null}
+                        // @ts-ignore - onMouseEnter/onMouseLeave are available in React Native Web
+                        onMouseEnter={() => note && setHoveredNote(note)}
+                        // @ts-ignore - onMouseEnter/onMouseLeave are available in React Native Web
+                        onMouseLeave={() => setHoveredNote(null)}
+                        onPressIn={() => note && setHoveredNote(note)}
+                        onPressOut={() => setHoveredNote(null)}>
+                        <Text style={[
+                          styles.noteButtonText,
+                          note === null && styles.noteButtonTextPlaceholder,
+                          isCurrentlyGenerating && styles.noteButtonTextGenerating,
+                        ]}>
+                          {note === null ? '?' : note.name}
+                        </Text>
+                      </Pressable>
+                    )}
+                    {noteErrors[index] && (
+                      <Text style={styles.noteErrorText}>Invalid note</Text>
+                    )}
+                  </View>
+                );
+              })}
             </View>
           </View>
           <TimelineView
@@ -1041,6 +1094,7 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
             totalLength={parseFloat(totalLength)}
             highlightedNote={highlightedNote}
             placeholders={generationMode === 'user' ? currentNotes : undefined}
+            currentPlaybackTime={isPlaying ? currentPlaybackTime : undefined}
           />
         </>
       )}
@@ -1356,6 +1410,21 @@ const styles = StyleSheet.create({
   },
   noteButtonTextPlaceholder: {
     color: '#999',
+  },
+  noteButtonGenerating: {
+    backgroundColor: '#FFD700',
+    borderWidth: 3,
+    borderColor: '#FFA500',
+    shadowColor: '#FFD700',
+    shadowOffset: {width: 0, height: 0},
+    shadowOpacity: 0.8,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  noteButtonTextGenerating: {
+    color: '#333',
+    fontWeight: 'bold',
+    fontSize: 15,
   },
 });
 
