@@ -8,17 +8,19 @@ interface TimelineViewProps {
   totalLength: number;
   highlightedNote?: PianoNote | null;
   instrumentName?: string; // Optional instrument name, defaults to "Piano"
+  placeholders?: (PianoNote | null)[]; // Optional array of notes and placeholders for user-generated mode
 }
 
 interface SwimLane {
   id: string;
   label: string;
   notes: Array<{
-    note: PianoNote;
+    note: PianoNote | null; // null indicates a placeholder
     startTime: number;
     left: number;
     width: number;
     isHighlighted: boolean;
+    isPlaceholder: boolean;
   }>;
 }
 
@@ -28,6 +30,7 @@ const TimelineView: React.FC<TimelineViewProps> = ({
   totalLength,
   highlightedNote,
   instrumentName = 'Piano',
+  placeholders,
 }) => {
   // Get screen dimensions for responsive design
   const [screenData, setScreenData] = useState(Dimensions.get('window'));
@@ -41,7 +44,10 @@ const TimelineView: React.FC<TimelineViewProps> = ({
 
   const isMobile = screenData.width < 768;
 
-  if (notes.length === 0) {
+  // Use placeholders if provided (user-generated mode), otherwise use notes
+  const displayItems = placeholders || notes.map(note => note as PianoNote | null);
+  
+  if (displayItems.length === 0) {
     return null;
   }
 
@@ -60,20 +66,22 @@ const TimelineView: React.FC<TimelineViewProps> = ({
     });
   }
 
-  // Create note blocks for the first lane (all notes go here)
-  const noteBlocks = notes.map((note, index) => {
+  // Create note blocks for the first lane (all notes go here, including placeholders)
+  const noteBlocks = displayItems.map((item, index) => {
     const startTime = index * noteLength;
     const left = startTime * pixelsPerSecond;
-    const isHighlighted = highlightedNote && 
-      highlightedNote.name === note.name && 
-      highlightedNote.frequency === note.frequency;
+    const isPlaceholder = item === null;
+    const isHighlighted = !isPlaceholder && highlightedNote && 
+      highlightedNote.name === item.name && 
+      highlightedNote.frequency === item.frequency;
 
     return {
-      note,
+      note: item,
       startTime,
       left,
       width: noteWidth,
       isHighlighted,
+      isPlaceholder,
     };
   });
 
@@ -162,32 +170,64 @@ const TimelineView: React.FC<TimelineViewProps> = ({
                   
                   {/* Lane content with notes */}
                   <View style={styles.laneContent}>
-                    {lane.notes.map((block, noteIndex) => (
-                      <View
-                        key={`${lane.id}-note-${noteIndex}`}
-                        style={[
-                          styles.noteBlock,
-                          isMobile && styles.noteBlockMobile,
-                          {
-                            left: block.left,
-                            width: block.width,
-                            backgroundColor: getNoteColor(block.note.name, block.isHighlighted),
-                            height: isMobile ? 35 : 45,
-                          },
-                          block.isHighlighted && styles.noteBlockHighlighted,
-                        ]}>
-                        <Text 
+                    {lane.notes.map((block, noteIndex) => {
+                      if (block.isPlaceholder) {
+                        // Render placeholder block
+                        return (
+                          <View
+                            key={`${lane.id}-note-${noteIndex}`}
+                            style={[
+                              styles.noteBlock,
+                              styles.noteBlockPlaceholder,
+                              isMobile && styles.noteBlockMobile,
+                              {
+                                left: block.left,
+                                width: block.width,
+                                height: isMobile ? 35 : 45,
+                              },
+                            ]}>
+                            <Text 
+                              style={[
+                                styles.noteText,
+                                styles.noteTextPlaceholder,
+                                isMobile && styles.noteTextMobile,
+                              ]}
+                              numberOfLines={1}
+                              adjustsFontSizeToFit>
+                              ?
+                            </Text>
+                          </View>
+                        );
+                      }
+                      
+                      // Render filled note block
+                      return (
+                        <View
+                          key={`${lane.id}-note-${noteIndex}`}
                           style={[
-                            styles.noteText,
-                            isMobile && styles.noteTextMobile,
-                            block.isHighlighted && styles.noteTextHighlighted,
-                          ]}
-                          numberOfLines={1}
-                          adjustsFontSizeToFit>
-                          {block.note.name}
-                        </Text>
-                      </View>
-                    ))}
+                            styles.noteBlock,
+                            isMobile && styles.noteBlockMobile,
+                            {
+                              left: block.left,
+                              width: block.width,
+                              backgroundColor: getNoteColor(block.note!.name, block.isHighlighted),
+                              height: isMobile ? 35 : 45,
+                            },
+                            block.isHighlighted && styles.noteBlockHighlighted,
+                          ]}>
+                          <Text 
+                            style={[
+                              styles.noteText,
+                              isMobile && styles.noteTextMobile,
+                              block.isHighlighted && styles.noteTextHighlighted,
+                            ]}
+                            numberOfLines={1}
+                            adjustsFontSizeToFit>
+                            {block.note!.name}
+                          </Text>
+                        </View>
+                      );
+                    })}
                   </View>
                 </View>
               ))}
@@ -200,9 +240,13 @@ const TimelineView: React.FC<TimelineViewProps> = ({
       <View style={styles.legend}>
         <Text style={[styles.legendText, isMobile && styles.legendTextMobile]}>
           {isMobile ? (
-            `Length: ${noteLength}s / ${totalLength}s | Notes: ${notes.length}`
+            placeholders 
+              ? `Length: ${noteLength}s / ${totalLength}s | ${placeholders.filter(n => n !== null).length}/${placeholders.length} filled`
+              : `Length: ${noteLength}s / ${totalLength}s | Notes: ${notes.length}`
           ) : (
-            `Note Length: ${noteLength}s | Total Length: ${totalLength}s | Notes: ${notes.length} | Lanes: ${swimLanes.length}`
+            placeholders
+              ? `Note Length: ${noteLength}s | Total Length: ${totalLength}s | ${placeholders.filter(n => n !== null).length}/${placeholders.length} filled | Lanes: ${swimLanes.length}`
+              : `Note Length: ${noteLength}s | Total Length: ${totalLength}s | Notes: ${notes.length} | Lanes: ${swimLanes.length}`
           )}
         </Text>
       </View>
@@ -361,6 +405,17 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: 'bold',
     color: '#000',
+  },
+  noteBlockPlaceholder: {
+    backgroundColor: '#f5f5f5',
+    borderWidth: 2,
+    borderStyle: 'dashed',
+    borderColor: '#999',
+  },
+  noteTextPlaceholder: {
+    color: '#999',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   legend: {
     marginTop: 10,

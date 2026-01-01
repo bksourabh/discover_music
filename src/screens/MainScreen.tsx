@@ -161,7 +161,7 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
 
   const [noteLength, setNoteLength] = useState<string>('0.3');
   const [totalLength, setTotalLength] = useState<string>('7');
-  const [currentNotes, setCurrentNotes] = useState<PianoNote[]>([]);
+  const [currentNotes, setCurrentNotes] = useState<(PianoNote | null)[]>([]);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [recentSequences, setRecentSequences] = useState<NoteSequence[]>([]);
@@ -176,10 +176,36 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
   const [editingNoteValue, setEditingNoteValue] = useState<string>('');
   const [originalNoteValue, setOriginalNoteValue] = useState<string>('');
   const [noteErrors, setNoteErrors] = useState<{[index: number]: boolean}>({});
+  const [generationMode, setGenerationMode] = useState<'auto' | 'user'>('auto');
 
   useEffect(() => {
     loadRecentSequences();
   }, []);
+
+  // When switching to user-generated mode or changing note/total length, create placeholders
+  useEffect(() => {
+    if (generationMode === 'user') {
+      // Disable range mode and reset range selection in user-generated mode
+      if (rangeMode) {
+        setRangeMode(false);
+        setMinRangeNote(null);
+        setMaxRangeNote(null);
+      }
+      
+      const noteLengthNum = parseFloat(noteLength);
+      const totalLengthNum = parseFloat(totalLength);
+      
+      if (!isNaN(noteLengthNum) && !isNaN(totalLengthNum) && noteLengthNum > 0 && totalLengthNum > 0) {
+        const numNotes = Math.floor(totalLengthNum / noteLengthNum);
+        // Create placeholders: array of null values
+        const placeholders: (PianoNote | null)[] = new Array(numNotes).fill(null);
+        setCurrentNotes(placeholders);
+      }
+    } else {
+      // When switching to auto mode, clear notes (user needs to generate)
+      setCurrentNotes([]);
+    }
+  }, [generationMode, noteLength, totalLength]);
 
   const loadRecentSequences = async () => {
     try {
@@ -211,6 +237,14 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
       return;
     }
 
+    // In user-generated mode, just create placeholders (handled by useEffect)
+    if (generationMode === 'user') {
+      const numNotes = Math.floor(totalLengthNum / noteLengthNum);
+      const placeholders: (PianoNote | null)[] = new Array(numNotes).fill(null);
+      setCurrentNotes(placeholders);
+      return;
+    }
+
     setIsGenerating(true);
     await stopAllSounds();
 
@@ -226,9 +260,10 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
       );
       setCurrentNotes(notes);
 
-      // Save to recent sequences
+      // Save to recent sequences (filter out null placeholders)
+      const validNotes = notes.filter((note): note is PianoNote => note !== null);
       const sequence: NoteSequence = {
-        notes: notesToString(notes),
+        notes: notesToString(validNotes),
         noteLength: noteLengthNum,
         totalLength: totalLengthNum,
         createdAt: new Date().toISOString(),
@@ -271,6 +306,13 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
       return;
     }
 
+    // Filter out null placeholders for playback
+    const validNotes = currentNotes.filter((note): note is PianoNote => note !== null);
+    if (validNotes.length === 0) {
+      Alert.alert('No Notes', 'Please fill in some notes first');
+      return;
+    }
+
     setIsPlaying(true);
     setHighlightedNote(null);
     await stopAllSounds();
@@ -280,7 +322,7 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
       try {
         const {playNoteSequence} = require('../utils/audioPlayer.web');
         await playNoteSequence(
-          currentNotes,
+          validNotes,
           parseFloat(noteLength),
           (note: PianoNote) => setHighlightedNote(note),
           () => {} // onNoteEnd - no action needed
@@ -301,9 +343,11 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
     setHighlightedNote(null);
   };
 
-  const exportSequenceToCSV = (notes: PianoNote[], noteLengthValue: number, filename?: string) => {
+  const exportSequenceToCSV = (notes: (PianoNote | null)[], noteLengthValue: number, filename?: string) => {
     try {
-      if (notes.length === 0) {
+      // Filter out null placeholders
+      const validNotes = notes.filter((note): note is PianoNote => note !== null);
+      if (validNotes.length === 0) {
         Alert.alert('No Notes', 'No notes to export');
         return;
       }
@@ -313,10 +357,18 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
       const rows: string[] = [headers.join(',')];
       
       let timestamp = 0;
+      let validIndex = 0;
       
       notes.forEach((note, index) => {
+        // Skip null placeholders in export
+        if (note === null) {
+          timestamp += noteLengthValue;
+          return;
+        }
+        
+        validIndex++;
         const row = [
-          (index + 1).toString(),
+          validIndex.toString(),
           note.name,
           note.frequency.toFixed(2),
           note.octave.toString(),
@@ -364,6 +416,11 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
   const handleDownloadCSV = () => {
     if (currentNotes.length === 0) {
       Alert.alert('No Notes', 'Please generate notes first');
+      return;
+    }
+    const validNotes = currentNotes.filter((note): note is PianoNote => note !== null);
+    if (validNotes.length === 0) {
+      Alert.alert('No Notes', 'Please fill in some notes first');
       return;
     }
     const noteLengthNum = parseFloat(noteLength);
@@ -572,8 +629,38 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
         setMinRangeNote(note);
         setMaxRangeNote(null);
       }
+    } else if (generationMode === 'user') {
+      // User-generated mode: fill the next empty placeholder
+      const notesCopy = [...currentNotes];
+      const emptyIndex = notesCopy.findIndex(n => n === null);
+      
+      if (emptyIndex !== -1) {
+        notesCopy[emptyIndex] = note;
+        setCurrentNotes(notesCopy);
+        
+        // Also play the note briefly
+        try {
+          setHighlightedNote(note);
+          const noteDuration = 0.5;
+          
+          if (isWeb) {
+            const {playNote} = require('../utils/audioPlayer.web');
+            await playNote(note, noteDuration);
+          } else {
+            const {playNote} = require('../utils/audioPlayer');
+            await playNote(note, noteDuration);
+          }
+          
+          setHighlightedNote(null);
+        } catch (error) {
+          console.error('Error playing key:', error);
+          setHighlightedNote(null);
+        }
+      } else {
+        Alert.alert('All Slots Filled', 'All note slots are filled. Generate new placeholders or switch to auto mode.');
+      }
     } else {
-      // Normal play mode
+      // Normal play mode (auto generation mode)
       try {
         // Highlight the pressed key
         setHighlightedNote(note);
@@ -648,9 +735,12 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
     setEditingNoteValue('');
     setOriginalNoteValue('');
     setNoteErrors({});
+    setGenerationMode('auto');
   };
 
-  const handleNoteEditStart = (index: number, currentNote: PianoNote) => {
+  const handleNoteEditStart = (index: number, currentNote: PianoNote | null) => {
+    if (currentNote === null) return; // Can't edit placeholders
+    
     setEditingNoteIndex(index);
     setEditingNoteValue(currentNote.name);
     setOriginalNoteValue(currentNote.name);
@@ -734,6 +824,50 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
         onValueChange={setTotalLength}
       />
 
+      {/* Generation Mode Selector */}
+      <View style={[styles.checkboxContainer, dynamicStyles.checkboxContainer]}>
+        <Text style={[styles.checkboxLabel, dynamicStyles.checkboxLabel]}>
+          Generation Mode:
+        </Text>
+        <View style={styles.modeSelector}>
+          <TouchableOpacity
+            style={[
+              styles.modeButton,
+              generationMode === 'auto' && styles.modeButtonActive,
+            ]}
+            onPress={() => setGenerationMode('auto')}>
+            <Text
+              style={[
+                styles.modeButtonText,
+                generationMode === 'auto' && styles.modeButtonTextActive,
+              ]}>
+              Auto Generate
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.modeButton,
+              generationMode === 'user' && styles.modeButtonActive,
+            ]}
+            onPress={() => setGenerationMode('user')}>
+            <Text
+              style={[
+                styles.modeButtonText,
+                generationMode === 'user' && styles.modeButtonTextActive,
+              ]}>
+              User Generated
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+      {generationMode === 'user' && (
+        <View style={styles.userModeInfo}>
+          <Text style={[styles.userModeInfoText, dynamicStyles.rangeInfoText]}>
+            Click piano keys to fill note slots. Generate creates empty placeholders based on note length and total length.
+          </Text>
+        </View>
+      )}
+
       {/* Restore to Default Button */}
       <TouchableOpacity
         style={[styles.button, styles.restoreButton, dynamicStyles.button]}
@@ -742,18 +876,28 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
       </TouchableOpacity>
 
       {/* Range Mode Checkbox */}
-      <View style={[styles.checkboxContainer, dynamicStyles.checkboxContainer]}>
+      <View style={[
+        styles.checkboxContainer, 
+        dynamicStyles.checkboxContainer,
+        generationMode === 'user' && styles.checkboxContainerDisabled,
+      ]}>
         <Switch
           value={rangeMode}
           onValueChange={handleRangeModeToggle}
+          disabled={generationMode === 'user'}
           trackColor={{false: '#767577', true: '#4CAF50'}}
           thumbColor={rangeMode ? '#fff' : '#f4f3f4'}
         />
-        <Text style={[styles.checkboxLabel, dynamicStyles.checkboxLabel]}>
+        <Text style={[
+          styles.checkboxLabel, 
+          dynamicStyles.checkboxLabel,
+          generationMode === 'user' && styles.checkboxLabelDisabled,
+        ]}>
           Select Piano Generation Range Mode
+          {generationMode === 'user' && ' (Disabled in User Generated Mode)'}
         </Text>
       </View>
-      {rangeMode && (
+      {rangeMode && generationMode === 'auto' && (
         <View style={styles.rangeInfo}>
           <Text style={[styles.rangeInfoText, dynamicStyles.rangeInfoText]}>
             {minRangeNote 
@@ -764,28 +908,48 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
       )}
 
       {/* Use Sharps Checkbox */}
-      <View style={[styles.checkboxContainer, dynamicStyles.checkboxContainer]}>
+      <View style={[
+        styles.checkboxContainer, 
+        dynamicStyles.checkboxContainer,
+        generationMode === 'user' && styles.checkboxContainerDisabled,
+      ]}>
         <Switch
           value={useSharps}
           onValueChange={handleUseSharpsToggle}
+          disabled={generationMode === 'user'}
           trackColor={{false: '#767577', true: '#4CAF50'}}
           thumbColor={useSharps ? '#fff' : '#f4f3f4'}
         />
-        <Text style={[styles.checkboxLabel, dynamicStyles.checkboxLabel]}>
+        <Text style={[
+          styles.checkboxLabel, 
+          dynamicStyles.checkboxLabel,
+          generationMode === 'user' && styles.checkboxLabelDisabled,
+        ]}>
           Use Sharps (Black Keys)
+          {generationMode === 'user' && ' (Disabled in User Generated Mode)'}
         </Text>
       </View>
 
       {/* Use Flats Checkbox */}
-      <View style={[styles.checkboxContainer, dynamicStyles.checkboxContainer]}>
+      <View style={[
+        styles.checkboxContainer, 
+        dynamicStyles.checkboxContainer,
+        generationMode === 'user' && styles.checkboxContainerDisabled,
+      ]}>
         <Switch
           value={useFlats}
           onValueChange={handleUseFlatsToggle}
+          disabled={generationMode === 'user'}
           trackColor={{false: '#767577', true: '#4CAF50'}}
           thumbColor={useFlats ? '#fff' : '#f4f3f4'}
         />
-        <Text style={[styles.checkboxLabel, dynamicStyles.checkboxLabel]}>
+        <Text style={[
+          styles.checkboxLabel, 
+          dynamicStyles.checkboxLabel,
+          generationMode === 'user' && styles.checkboxLabelDisabled,
+        ]}>
           Use Flats (White Keys)
+          {generationMode === 'user' && ' (Disabled in User Generated Mode)'}
         </Text>
       </View>
 
@@ -815,15 +979,19 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
         <>
           <View style={styles.infoContainer}>
             <Text style={styles.infoText}>
-              Generated {currentNotes.length} notes
+              {generationMode === 'user' 
+                ? `${currentNotes.filter(n => n !== null).length} of ${currentNotes.length} notes filled`
+                : `Generated ${currentNotes.filter(n => n !== null).length} notes`}
             </Text>
             <Text style={styles.infoText}>
-              Click on any note to edit it:
+              {generationMode === 'user' 
+                ? 'Click piano keys to fill empty slots. Click on filled notes to edit:'
+                : 'Click on any note to edit it:'}
             </Text>
             <View style={styles.notesContainer}>
               {currentNotes.map((note, index) => (
                 <View key={index} style={styles.noteItem}>
-                  {editingNoteIndex === index ? (
+                  {editingNoteIndex === index && note !== null ? (
                     <TextInput
                       style={[
                         styles.noteInput,
@@ -842,15 +1010,22 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
                       style={({pressed}) => [
                         styles.noteButton,
                         pressed && styles.noteButtonPressed,
+                        note === null && styles.noteButtonPlaceholder,
                       ]}
-                      onPress={() => handleNoteEditStart(index, note)}
+                      onPress={() => note !== null && handleNoteEditStart(index, note)}
+                      disabled={note === null}
                       // @ts-ignore - onMouseEnter/onMouseLeave are available in React Native Web
-                      onMouseEnter={() => setHoveredNote(note)}
+                      onMouseEnter={() => note && setHoveredNote(note)}
                       // @ts-ignore - onMouseEnter/onMouseLeave are available in React Native Web
                       onMouseLeave={() => setHoveredNote(null)}
-                      onPressIn={() => setHoveredNote(note)}
+                      onPressIn={() => note && setHoveredNote(note)}
                       onPressOut={() => setHoveredNote(null)}>
-                      <Text style={styles.noteButtonText}>{note.name}</Text>
+                      <Text style={[
+                        styles.noteButtonText,
+                        note === null && styles.noteButtonTextPlaceholder,
+                      ]}>
+                        {note === null ? '?' : note.name}
+                      </Text>
                     </Pressable>
                   )}
                   {noteErrors[index] && (
@@ -861,10 +1036,11 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
             </View>
           </View>
           <TimelineView
-            notes={currentNotes}
+            notes={currentNotes.filter((note): note is PianoNote => note !== null)}
             noteLength={parseFloat(noteLength)}
             totalLength={parseFloat(totalLength)}
             highlightedNote={highlightedNote}
+            placeholders={generationMode === 'user' ? currentNotes : undefined}
           />
         </>
       )}
@@ -897,7 +1073,7 @@ const MainScreen: React.FC<MainScreenProps> = ({user, onLogout}) => {
       {/* Audio Player Component - Hidden, handles playback (native only) */}
       {!isWeb && isPlaying && currentNotes.length > 0 && AudioPlayer && (
         <AudioPlayer
-          notes={currentNotes}
+          notes={currentNotes.filter((note): note is PianoNote => note !== null)}
           noteLength={parseFloat(noteLength)}
           onPlayComplete={handlePlayComplete}
           onNoteStart={(note: PianoNote) => setHighlightedNote(note)}
@@ -1063,11 +1239,18 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ddd',
   },
+  checkboxContainerDisabled: {
+    backgroundColor: '#f5f5f5',
+    opacity: 0.6,
+  },
   checkboxLabel: {
     fontSize: 16,
     color: '#333',
     marginLeft: 10,
     flex: 1,
+  },
+  checkboxLabelDisabled: {
+    color: '#999',
   },
   rangeInfo: {
     backgroundColor: '#e3f2fd',
@@ -1127,6 +1310,52 @@ const styles = StyleSheet.create({
     fontSize: 10,
     marginTop: 2,
     textAlign: 'center',
+  },
+  modeSelector: {
+    flexDirection: 'row',
+    marginLeft: 10,
+    gap: 10,
+  },
+  modeButton: {
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: '#4CAF50',
+    backgroundColor: '#fff',
+  },
+  modeButtonActive: {
+    backgroundColor: '#4CAF50',
+  },
+  modeButtonText: {
+    fontSize: 14,
+    color: '#4CAF50',
+    fontWeight: '600',
+  },
+  modeButtonTextActive: {
+    color: '#fff',
+  },
+  userModeInfo: {
+    backgroundColor: '#fff3cd',
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: '#ffc107',
+  },
+  userModeInfoText: {
+    fontSize: 14,
+    color: '#856404',
+    textAlign: 'center',
+  },
+  noteButtonPlaceholder: {
+    backgroundColor: '#e0e0e0',
+    borderWidth: 2,
+    borderStyle: 'dashed',
+    borderColor: '#999',
+  },
+  noteButtonTextPlaceholder: {
+    color: '#999',
   },
 });
 
