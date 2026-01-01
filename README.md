@@ -7,7 +7,7 @@ A React Native application for iOS, Android, and Web that generates and plays ra
 - **User Authentication**: Login via Facebook, Google, and Apple Sign-In
 - **Local Database**: SQLite database (native) / localStorage (web) for storing musical notes and sequences
 - **Piano Note Generation**: Random notes from full 88-key piano (A0 27.5Hz to C8 4186Hz)
-- **Audio Playback**: Play generated sequences using Web Audio API
+- **Audio Playback**: Play sequences using pre-recorded MP3 piano samples (HTML5 Audio on web, react-native-sound on native)
 - **Sequence Management**: 
   - Remembers last 3 generated sequences
   - Save favorite sequences to database
@@ -123,15 +123,17 @@ npm run web:build
 
 **Web Features:**
 - ✅ Piano Note Generation - Full 88-key range
-- ✅ Audio Playback - Uses Web Audio API directly
+- ✅ Audio Playback - Uses HTML5 Audio with pre-recorded MP3 piano samples
 - ✅ Local Storage - Uses localStorage instead of SQLite
 - ✅ Note Sequences - Save and load sequences
 - ✅ UI Components - All React Native components work via react-native-web
+- ✅ Safari Compatible - Includes Safari-specific fixes for audio playback
 
 **Web Limitations:**
 - ⚠️ Authentication - Facebook/Google/Apple Sign-In need web-specific setup
 - ⚠️ Native Modules - Some native modules won't work (SQLite uses localStorage fallback)
 - ⚠️ Performance - May be slower than native apps
+- ⚠️ Audio - Requires MP3 files to be available (automatically served from `piano-mp3/` folder)
 
 ### iOS
 
@@ -217,11 +219,13 @@ npx gh-pages -d web-build
 
 ## MP3 Piano Notes Setup
 
-The app can use pre-recorded MP3 piano samples for more realistic sound.
+The app uses pre-recorded MP3 piano samples for realistic piano sound. The `piano-mp3/` folder contains 88 piano note samples covering the full range (A0 to C8).
 
 ### Web Setup
 
-The MP3 files are automatically served from the `piano-mp3/` folder when running the web version. **No additional setup needed for web!**
+The MP3 files are automatically served from the `piano-mp3/` folder when running the web version. The webpack configuration automatically copies these files to the build output. **No additional setup needed for web!**
+
+**Note:** The web implementation uses HTML5 Audio with automatic path resolution that handles GitHub Pages subdirectories correctly.
 
 ### Android Setup
 
@@ -288,11 +292,11 @@ src/
     auth.ts           # Authentication service (native)
     auth.web.ts       # Authentication service (web)
   utils/              # Utility functions
-    audioPlayer.ts    # Audio playback utilities (native)
-    audioPlayer.web.ts # Audio playback utilities (web)
+    audioPlayer.ts    # Audio playback utilities (native) - uses react-native-sound with MP3 files
+    audioPlayer.web.ts # Audio playback utilities (web) - uses HTML5 Audio with MP3 files
     database.ts       # SQLite database operations (native)
     database.web.ts   # localStorage operations (web)
-    noteToMp3.ts      # MP3 file mapping
+    noteToMp3.ts      # MP3 file mapping and path resolution
     pianoNotes.ts     # Piano note generation and calculations
 ```
 
@@ -309,13 +313,28 @@ All data is stored client-side - there is no server-side database or API.
 
 ## Audio Implementation
 
-The app uses Web Audio API to generate piano tones programmatically. For production use, consider:
+The app uses pre-recorded MP3 piano samples for realistic piano sound:
 
-1. **Pre-recorded Piano Samples**: Use actual piano sample files (.mp3/.wav) for more realistic sound
-2. **Tone Generation Library**: Use libraries like `react-native-audio-recorder-player` for better audio generation
-3. **Web Audio API**: Current implementation uses WebView with injected JavaScript for tone generation (native) or direct Web Audio API (web)
+1. **Web Implementation**: Uses HTML5 Audio API with MP3 files from the `piano-mp3/` folder
+   - Includes Safari-compatible loading and playback handling
+   - Smooth fade-out effects for natural note endings
+   - Automatic cleanup of audio elements
 
-The `react-native-sound` library is included in dependencies but requires actual audio files. The current implementation uses Web Audio API for programmatic tone generation.
+2. **Native Implementation**: Uses `react-native-sound` library with MP3 files
+   - iOS: MP3 files bundled in the app
+   - Android: MP3 files in `android/app/src/main/res/raw/`
+   - Sound caching for better performance
+
+3. **MP3 Files**: The app includes 88 piano note samples covering the full range (A0 to C8)
+   - Files are automatically mapped from note names to MP3 filenames
+   - Sharp notes are converted to flat equivalents in filenames (e.g., C# → Db)
+
+The audio player supports:
+- Sequential note playback with customizable note lengths
+- Smooth fade-out effects (250ms fade duration)
+- Automatic cleanup of audio resources
+- Progress callbacks for UI updates
+- Stop all sounds functionality
 
 ## Troubleshooting
 
@@ -359,6 +378,12 @@ npm start -- --reset-cache
 - You can safely ignore it - it's harmless and doesn't affect your app
 - To eliminate the warning, temporarily disable browser extensions or use incognito/private mode
 
+**Audio not playing (especially on Safari)**
+- The web implementation includes Safari-specific fixes for audio loading and playback
+- If audio doesn't play, check the browser console for errors
+- Ensure MP3 files are in the `piano-mp3/` folder and are being served correctly
+- For GitHub Pages, verify the base path is correctly configured in `noteToMp3.ts`
+
 **Module not found errors**
 ```bash
 npm install
@@ -374,6 +399,7 @@ npm install
 - Verify the `publicPath` in `webpack.config.js` matches your repository name
 - Check the browser console for 404 errors
 - Ensure GitHub Pages is enabled in repository settings
+- MP3 files should be automatically copied to the build output by webpack
 
 ### Android Issues
 
