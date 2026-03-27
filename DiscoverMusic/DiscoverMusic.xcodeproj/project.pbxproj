@@ -1,0 +1,773 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A10000000000000000000001 /* DiscoverMusicApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000001 /* DiscoverMusicApp.swift */; };
+		A10000000000000000000002 /* PianoNote.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000002 /* PianoNote.swift */; };
+		A10000000000000000000003 /* NoteSequence.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000003 /* NoteSequence.swift */; };
+		A10000000000000000000004 /* AudioService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000004 /* AudioService.swift */; };
+		A10000000000000000000005 /* DatabaseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000005 /* DatabaseService.swift */; };
+		A10000000000000000000006 /* MainViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000006 /* MainViewModel.swift */; };
+		A10000000000000000000007 /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000007 /* MainView.swift */; };
+		A10000000000000000000008 /* PianoKeyboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000008 /* PianoKeyboardView.swift */; };
+		A10000000000000000000009 /* TimelineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000009 /* TimelineView.swift */; };
+		A1000000000000000000000A /* NotesGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000000A /* NotesGridView.swift */; };
+		A1000000000000000000000B /* UIComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000000B /* UIComponents.swift */; };
+		A1000000000000000000000C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000000C /* Assets.xcassets */; };
+		A10000000000000000000101 /* A0.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000101 /* A0.mp3 */; };
+		A10000000000000000000102 /* A1.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000102 /* A1.mp3 */; };
+		A10000000000000000000103 /* A2.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000103 /* A2.mp3 */; };
+		A10000000000000000000104 /* A3.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000104 /* A3.mp3 */; };
+		A10000000000000000000105 /* A4.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000105 /* A4.mp3 */; };
+		A10000000000000000000106 /* A5.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000106 /* A5.mp3 */; };
+		A10000000000000000000107 /* A6.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000107 /* A6.mp3 */; };
+		A10000000000000000000108 /* A7.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000108 /* A7.mp3 */; };
+		A10000000000000000000109 /* Ab1.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000109 /* Ab1.mp3 */; };
+		A1000000000000000000010A /* Ab2.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000010A /* Ab2.mp3 */; };
+		A1000000000000000000010B /* Ab3.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000010B /* Ab3.mp3 */; };
+		A1000000000000000000010C /* Ab4.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000010C /* Ab4.mp3 */; };
+		A1000000000000000000010D /* Ab5.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000010D /* Ab5.mp3 */; };
+		A1000000000000000000010E /* Ab6.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000010E /* Ab6.mp3 */; };
+		A1000000000000000000010F /* Ab7.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000010F /* Ab7.mp3 */; };
+		A10000000000000000000110 /* B0.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000110 /* B0.mp3 */; };
+		A10000000000000000000111 /* B1.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000111 /* B1.mp3 */; };
+		A10000000000000000000112 /* B2.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000112 /* B2.mp3 */; };
+		A10000000000000000000113 /* B3.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000113 /* B3.mp3 */; };
+		A10000000000000000000114 /* B4.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000114 /* B4.mp3 */; };
+		A10000000000000000000115 /* B5.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000115 /* B5.mp3 */; };
+		A10000000000000000000116 /* B6.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000116 /* B6.mp3 */; };
+		A10000000000000000000117 /* B7.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000117 /* B7.mp3 */; };
+		A10000000000000000000118 /* Bb0.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000118 /* Bb0.mp3 */; };
+		A10000000000000000000119 /* Bb1.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000119 /* Bb1.mp3 */; };
+		A1000000000000000000011A /* Bb2.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000011A /* Bb2.mp3 */; };
+		A1000000000000000000011B /* Bb3.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000011B /* Bb3.mp3 */; };
+		A1000000000000000000011C /* Bb4.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000011C /* Bb4.mp3 */; };
+		A1000000000000000000011D /* Bb5.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000011D /* Bb5.mp3 */; };
+		A1000000000000000000011E /* Bb6.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000011E /* Bb6.mp3 */; };
+		A1000000000000000000011F /* Bb7.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000011F /* Bb7.mp3 */; };
+		A10000000000000000000120 /* C1.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000120 /* C1.mp3 */; };
+		A10000000000000000000121 /* C2.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000121 /* C2.mp3 */; };
+		A10000000000000000000122 /* C3.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000122 /* C3.mp3 */; };
+		A10000000000000000000123 /* C4.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000123 /* C4.mp3 */; };
+		A10000000000000000000124 /* C5.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000124 /* C5.mp3 */; };
+		A10000000000000000000125 /* C6.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000125 /* C6.mp3 */; };
+		A10000000000000000000126 /* C7.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000126 /* C7.mp3 */; };
+		A10000000000000000000127 /* C8.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000127 /* C8.mp3 */; };
+		A10000000000000000000128 /* D1.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000128 /* D1.mp3 */; };
+		A10000000000000000000129 /* D2.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000129 /* D2.mp3 */; };
+		A1000000000000000000012A /* D3.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000012A /* D3.mp3 */; };
+		A1000000000000000000012B /* D4.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000012B /* D4.mp3 */; };
+		A1000000000000000000012C /* D5.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000012C /* D5.mp3 */; };
+		A1000000000000000000012D /* D6.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000012D /* D6.mp3 */; };
+		A1000000000000000000012E /* D7.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000012E /* D7.mp3 */; };
+		A1000000000000000000012F /* Db1.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000012F /* Db1.mp3 */; };
+		A10000000000000000000130 /* Db2.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000130 /* Db2.mp3 */; };
+		A10000000000000000000131 /* Db3.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000131 /* Db3.mp3 */; };
+		A10000000000000000000132 /* Db4.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000132 /* Db4.mp3 */; };
+		A10000000000000000000133 /* Db5.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000133 /* Db5.mp3 */; };
+		A10000000000000000000134 /* Db6.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000134 /* Db6.mp3 */; };
+		A10000000000000000000135 /* Db7.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000135 /* Db7.mp3 */; };
+		A10000000000000000000136 /* Db8.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000136 /* Db8.mp3 */; };
+		A10000000000000000000137 /* E1.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000137 /* E1.mp3 */; };
+		A10000000000000000000138 /* E2.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000138 /* E2.mp3 */; };
+		A10000000000000000000139 /* E3.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000139 /* E3.mp3 */; };
+		A1000000000000000000013A /* E4.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000013A /* E4.mp3 */; };
+		A1000000000000000000013B /* E5.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000013B /* E5.mp3 */; };
+		A1000000000000000000013C /* E6.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000013C /* E6.mp3 */; };
+		A1000000000000000000013D /* E7.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000013D /* E7.mp3 */; };
+		A1000000000000000000013E /* Eb1.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000013E /* Eb1.mp3 */; };
+		A1000000000000000000013F /* Eb2.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000013F /* Eb2.mp3 */; };
+		A10000000000000000000140 /* Eb3.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000140 /* Eb3.mp3 */; };
+		A10000000000000000000141 /* Eb4.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000141 /* Eb4.mp3 */; };
+		A10000000000000000000142 /* Eb5.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000142 /* Eb5.mp3 */; };
+		A10000000000000000000143 /* Eb6.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000143 /* Eb6.mp3 */; };
+		A10000000000000000000144 /* Eb7.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000144 /* Eb7.mp3 */; };
+		A10000000000000000000145 /* F1.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000145 /* F1.mp3 */; };
+		A10000000000000000000146 /* F2.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000146 /* F2.mp3 */; };
+		A10000000000000000000147 /* F3.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000147 /* F3.mp3 */; };
+		A10000000000000000000148 /* F4.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000148 /* F4.mp3 */; };
+		A10000000000000000000149 /* F5.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000149 /* F5.mp3 */; };
+		A1000000000000000000014A /* F6.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000014A /* F6.mp3 */; };
+		A1000000000000000000014B /* F7.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000014B /* F7.mp3 */; };
+		A1000000000000000000014C /* G1.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000014C /* G1.mp3 */; };
+		A1000000000000000000014D /* G2.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000014D /* G2.mp3 */; };
+		A1000000000000000000014E /* G3.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000014E /* G3.mp3 */; };
+		A1000000000000000000014F /* G4.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000014F /* G4.mp3 */; };
+		A10000000000000000000150 /* G5.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000150 /* G5.mp3 */; };
+		A10000000000000000000151 /* G6.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000151 /* G6.mp3 */; };
+		A10000000000000000000152 /* G7.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000152 /* G7.mp3 */; };
+		A10000000000000000000153 /* Gb1.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000153 /* Gb1.mp3 */; };
+		A10000000000000000000154 /* Gb2.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000154 /* Gb2.mp3 */; };
+		A10000000000000000000155 /* Gb3.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000155 /* Gb3.mp3 */; };
+		A10000000000000000000156 /* Gb4.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000156 /* Gb4.mp3 */; };
+		A10000000000000000000157 /* Gb5.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000157 /* Gb5.mp3 */; };
+		A10000000000000000000158 /* Gb6.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000158 /* Gb6.mp3 */; };
+		A10000000000000000000159 /* Gb7.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000159 /* Gb7.mp3 */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		B10000000000000000000001 /* DiscoverMusicApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscoverMusicApp.swift; sourceTree = "<group>"; };
+		B10000000000000000000002 /* PianoNote.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PianoNote.swift; sourceTree = "<group>"; };
+		B10000000000000000000003 /* NoteSequence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteSequence.swift; sourceTree = "<group>"; };
+		B10000000000000000000004 /* AudioService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioService.swift; sourceTree = "<group>"; };
+		B10000000000000000000005 /* DatabaseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatabaseService.swift; sourceTree = "<group>"; };
+		B10000000000000000000006 /* MainViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainViewModel.swift; sourceTree = "<group>"; };
+		B10000000000000000000007 /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
+		B10000000000000000000008 /* PianoKeyboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PianoKeyboardView.swift; sourceTree = "<group>"; };
+		B10000000000000000000009 /* TimelineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimelineView.swift; sourceTree = "<group>"; };
+		B1000000000000000000000A /* NotesGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotesGridView.swift; sourceTree = "<group>"; };
+		B1000000000000000000000B /* UIComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIComponents.swift; sourceTree = "<group>"; };
+		B1000000000000000000000C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		B1000000000000000000000D /* DiscoverMusic.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DiscoverMusic.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B10000000000000000000101 /* A0.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = A0.mp3; path = ../piano-mp3/A0.mp3; sourceTree = "<group>"; };
+		B10000000000000000000102 /* A1.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = A1.mp3; path = ../piano-mp3/A1.mp3; sourceTree = "<group>"; };
+		B10000000000000000000103 /* A2.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = A2.mp3; path = ../piano-mp3/A2.mp3; sourceTree = "<group>"; };
+		B10000000000000000000104 /* A3.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = A3.mp3; path = ../piano-mp3/A3.mp3; sourceTree = "<group>"; };
+		B10000000000000000000105 /* A4.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = A4.mp3; path = ../piano-mp3/A4.mp3; sourceTree = "<group>"; };
+		B10000000000000000000106 /* A5.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = A5.mp3; path = ../piano-mp3/A5.mp3; sourceTree = "<group>"; };
+		B10000000000000000000107 /* A6.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = A6.mp3; path = ../piano-mp3/A6.mp3; sourceTree = "<group>"; };
+		B10000000000000000000108 /* A7.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = A7.mp3; path = ../piano-mp3/A7.mp3; sourceTree = "<group>"; };
+		B10000000000000000000109 /* Ab1.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = Ab1.mp3; path = ../piano-mp3/Ab1.mp3; sourceTree = "<group>"; };
+		B1000000000000000000010A /* Ab2.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = Ab2.mp3; path = ../piano-mp3/Ab2.mp3; sourceTree = "<group>"; };
+		B1000000000000000000010B /* Ab3.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = Ab3.mp3; path = ../piano-mp3/Ab3.mp3; sourceTree = "<group>"; };
+		B1000000000000000000010C /* Ab4.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = Ab4.mp3; path = ../piano-mp3/Ab4.mp3; sourceTree = "<group>"; };
+		B1000000000000000000010D /* Ab5.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = Ab5.mp3; path = ../piano-mp3/Ab5.mp3; sourceTree = "<group>"; };
+		B1000000000000000000010E /* Ab6.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = Ab6.mp3; path = ../piano-mp3/Ab6.mp3; sourceTree = "<group>"; };
+		B1000000000000000000010F /* Ab7.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = Ab7.mp3; path = ../piano-mp3/Ab7.mp3; sourceTree = "<group>"; };
+		B10000000000000000000110 /* B0.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = B0.mp3; path = ../piano-mp3/B0.mp3; sourceTree = "<group>"; };
+		B10000000000000000000111 /* B1.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = B1.mp3; path = ../piano-mp3/B1.mp3; sourceTree = "<group>"; };
+		B10000000000000000000112 /* B2.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = B2.mp3; path = ../piano-mp3/B2.mp3; sourceTree = "<group>"; };
+		B10000000000000000000113 /* B3.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = B3.mp3; path = ../piano-mp3/B3.mp3; sourceTree = "<group>"; };
+		B10000000000000000000114 /* B4.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = B4.mp3; path = ../piano-mp3/B4.mp3; sourceTree = "<group>"; };
+		B10000000000000000000115 /* B5.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = B5.mp3; path = ../piano-mp3/B5.mp3; sourceTree = "<group>"; };
+		B10000000000000000000116 /* B6.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = B6.mp3; path = ../piano-mp3/B6.mp3; sourceTree = "<group>"; };
+		B10000000000000000000117 /* B7.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = B7.mp3; path = ../piano-mp3/B7.mp3; sourceTree = "<group>"; };
+		B10000000000000000000118 /* Bb0.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = Bb0.mp3; path = ../piano-mp3/Bb0.mp3; sourceTree = "<group>"; };
+		B10000000000000000000119 /* Bb1.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = Bb1.mp3; path = ../piano-mp3/Bb1.mp3; sourceTree = "<group>"; };
+		B1000000000000000000011A /* Bb2.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = Bb2.mp3; path = ../piano-mp3/Bb2.mp3; sourceTree = "<group>"; };
+		B1000000000000000000011B /* Bb3.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = Bb3.mp3; path = ../piano-mp3/Bb3.mp3; sourceTree = "<group>"; };
+		B1000000000000000000011C /* Bb4.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = Bb4.mp3; path = ../piano-mp3/Bb4.mp3; sourceTree = "<group>"; };
+		B1000000000000000000011D /* Bb5.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = Bb5.mp3; path = ../piano-mp3/Bb5.mp3; sourceTree = "<group>"; };
+		B1000000000000000000011E /* Bb6.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = Bb6.mp3; path = ../piano-mp3/Bb6.mp3; sourceTree = "<group>"; };
+		B1000000000000000000011F /* Bb7.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = Bb7.mp3; path = ../piano-mp3/Bb7.mp3; sourceTree = "<group>"; };
+		B10000000000000000000120 /* C1.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = C1.mp3; path = ../piano-mp3/C1.mp3; sourceTree = "<group>"; };
+		B10000000000000000000121 /* C2.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = C2.mp3; path = ../piano-mp3/C2.mp3; sourceTree = "<group>"; };
+		B10000000000000000000122 /* C3.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = C3.mp3; path = ../piano-mp3/C3.mp3; sourceTree = "<group>"; };
+		B10000000000000000000123 /* C4.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = C4.mp3; path = ../piano-mp3/C4.mp3; sourceTree = "<group>"; };
+		B10000000000000000000124 /* C5.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = C5.mp3; path = ../piano-mp3/C5.mp3; sourceTree = "<group>"; };
+		B10000000000000000000125 /* C6.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = C6.mp3; path = ../piano-mp3/C6.mp3; sourceTree = "<group>"; };
+		B10000000000000000000126 /* C7.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = C7.mp3; path = ../piano-mp3/C7.mp3; sourceTree = "<group>"; };
+		B10000000000000000000127 /* C8.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = C8.mp3; path = ../piano-mp3/C8.mp3; sourceTree = "<group>"; };
+		B10000000000000000000128 /* D1.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = D1.mp3; path = ../piano-mp3/D1.mp3; sourceTree = "<group>"; };
+		B10000000000000000000129 /* D2.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = D2.mp3; path = ../piano-mp3/D2.mp3; sourceTree = "<group>"; };
+		B1000000000000000000012A /* D3.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = D3.mp3; path = ../piano-mp3/D3.mp3; sourceTree = "<group>"; };
+		B1000000000000000000012B /* D4.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = D4.mp3; path = ../piano-mp3/D4.mp3; sourceTree = "<group>"; };
+		B1000000000000000000012C /* D5.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = D5.mp3; path = ../piano-mp3/D5.mp3; sourceTree = "<group>"; };
+		B1000000000000000000012D /* D6.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = D6.mp3; path = ../piano-mp3/D6.mp3; sourceTree = "<group>"; };
+		B1000000000000000000012E /* D7.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = D7.mp3; path = ../piano-mp3/D7.mp3; sourceTree = "<group>"; };
+		B1000000000000000000012F /* Db1.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = Db1.mp3; path = ../piano-mp3/Db1.mp3; sourceTree = "<group>"; };
+		B10000000000000000000130 /* Db2.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = Db2.mp3; path = ../piano-mp3/Db2.mp3; sourceTree = "<group>"; };
+		B10000000000000000000131 /* Db3.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = Db3.mp3; path = ../piano-mp3/Db3.mp3; sourceTree = "<group>"; };
+		B10000000000000000000132 /* Db4.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = Db4.mp3; path = ../piano-mp3/Db4.mp3; sourceTree = "<group>"; };
+		B10000000000000000000133 /* Db5.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = Db5.mp3; path = ../piano-mp3/Db5.mp3; sourceTree = "<group>"; };
+		B10000000000000000000134 /* Db6.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = Db6.mp3; path = ../piano-mp3/Db6.mp3; sourceTree = "<group>"; };
+		B10000000000000000000135 /* Db7.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = Db7.mp3; path = ../piano-mp3/Db7.mp3; sourceTree = "<group>"; };
+		B10000000000000000000136 /* Db8.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = Db8.mp3; path = ../piano-mp3/Db8.mp3; sourceTree = "<group>"; };
+		B10000000000000000000137 /* E1.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = E1.mp3; path = ../piano-mp3/E1.mp3; sourceTree = "<group>"; };
+		B10000000000000000000138 /* E2.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = E2.mp3; path = ../piano-mp3/E2.mp3; sourceTree = "<group>"; };
+		B10000000000000000000139 /* E3.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = E3.mp3; path = ../piano-mp3/E3.mp3; sourceTree = "<group>"; };
+		B1000000000000000000013A /* E4.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = E4.mp3; path = ../piano-mp3/E4.mp3; sourceTree = "<group>"; };
+		B1000000000000000000013B /* E5.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = E5.mp3; path = ../piano-mp3/E5.mp3; sourceTree = "<group>"; };
+		B1000000000000000000013C /* E6.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = E6.mp3; path = ../piano-mp3/E6.mp3; sourceTree = "<group>"; };
+		B1000000000000000000013D /* E7.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = E7.mp3; path = ../piano-mp3/E7.mp3; sourceTree = "<group>"; };
+		B1000000000000000000013E /* Eb1.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = Eb1.mp3; path = ../piano-mp3/Eb1.mp3; sourceTree = "<group>"; };
+		B1000000000000000000013F /* Eb2.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = Eb2.mp3; path = ../piano-mp3/Eb2.mp3; sourceTree = "<group>"; };
+		B10000000000000000000140 /* Eb3.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = Eb3.mp3; path = ../piano-mp3/Eb3.mp3; sourceTree = "<group>"; };
+		B10000000000000000000141 /* Eb4.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = Eb4.mp3; path = ../piano-mp3/Eb4.mp3; sourceTree = "<group>"; };
+		B10000000000000000000142 /* Eb5.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = Eb5.mp3; path = ../piano-mp3/Eb5.mp3; sourceTree = "<group>"; };
+		B10000000000000000000143 /* Eb6.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = Eb6.mp3; path = ../piano-mp3/Eb6.mp3; sourceTree = "<group>"; };
+		B10000000000000000000144 /* Eb7.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = Eb7.mp3; path = ../piano-mp3/Eb7.mp3; sourceTree = "<group>"; };
+		B10000000000000000000145 /* F1.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = F1.mp3; path = ../piano-mp3/F1.mp3; sourceTree = "<group>"; };
+		B10000000000000000000146 /* F2.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = F2.mp3; path = ../piano-mp3/F2.mp3; sourceTree = "<group>"; };
+		B10000000000000000000147 /* F3.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = F3.mp3; path = ../piano-mp3/F3.mp3; sourceTree = "<group>"; };
+		B10000000000000000000148 /* F4.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = F4.mp3; path = ../piano-mp3/F4.mp3; sourceTree = "<group>"; };
+		B10000000000000000000149 /* F5.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = F5.mp3; path = ../piano-mp3/F5.mp3; sourceTree = "<group>"; };
+		B1000000000000000000014A /* F6.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = F6.mp3; path = ../piano-mp3/F6.mp3; sourceTree = "<group>"; };
+		B1000000000000000000014B /* F7.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = F7.mp3; path = ../piano-mp3/F7.mp3; sourceTree = "<group>"; };
+		B1000000000000000000014C /* G1.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = G1.mp3; path = ../piano-mp3/G1.mp3; sourceTree = "<group>"; };
+		B1000000000000000000014D /* G2.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = G2.mp3; path = ../piano-mp3/G2.mp3; sourceTree = "<group>"; };
+		B1000000000000000000014E /* G3.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = G3.mp3; path = ../piano-mp3/G3.mp3; sourceTree = "<group>"; };
+		B1000000000000000000014F /* G4.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = G4.mp3; path = ../piano-mp3/G4.mp3; sourceTree = "<group>"; };
+		B10000000000000000000150 /* G5.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = G5.mp3; path = ../piano-mp3/G5.mp3; sourceTree = "<group>"; };
+		B10000000000000000000151 /* G6.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = G6.mp3; path = ../piano-mp3/G6.mp3; sourceTree = "<group>"; };
+		B10000000000000000000152 /* G7.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = G7.mp3; path = ../piano-mp3/G7.mp3; sourceTree = "<group>"; };
+		B10000000000000000000153 /* Gb1.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = Gb1.mp3; path = ../piano-mp3/Gb1.mp3; sourceTree = "<group>"; };
+		B10000000000000000000154 /* Gb2.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = Gb2.mp3; path = ../piano-mp3/Gb2.mp3; sourceTree = "<group>"; };
+		B10000000000000000000155 /* Gb3.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = Gb3.mp3; path = ../piano-mp3/Gb3.mp3; sourceTree = "<group>"; };
+		B10000000000000000000156 /* Gb4.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = Gb4.mp3; path = ../piano-mp3/Gb4.mp3; sourceTree = "<group>"; };
+		B10000000000000000000157 /* Gb5.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = Gb5.mp3; path = ../piano-mp3/Gb5.mp3; sourceTree = "<group>"; };
+		B10000000000000000000158 /* Gb6.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = Gb6.mp3; path = ../piano-mp3/Gb6.mp3; sourceTree = "<group>"; };
+		B10000000000000000000159 /* Gb7.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = Gb7.mp3; path = ../piano-mp3/Gb7.mp3; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		C10000000000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		D10000000000000000000001 /* = */ = {
+			isa = PBXGroup;
+			children = (
+				D10000000000000000000002 /* DiscoverMusic */,
+				D10000000000000000000009 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		D10000000000000000000002 /* DiscoverMusic */ = {
+			isa = PBXGroup;
+			children = (
+				D10000000000000000000003 /* Models */,
+				D10000000000000000000005 /* ViewModels */,
+				D10000000000000000000006 /* Views */,
+				D10000000000000000000004 /* Services */,
+				D10000000000000000000008 /* Resources */,
+				B10000000000000000000001 /* DiscoverMusicApp.swift */,
+				B1000000000000000000000C /* Assets.xcassets */,
+			);
+			path = DiscoverMusic;
+			sourceTree = "<group>";
+		};
+		D10000000000000000000003 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				B10000000000000000000002 /* PianoNote.swift */,
+				B10000000000000000000003 /* NoteSequence.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		D10000000000000000000004 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				B10000000000000000000004 /* AudioService.swift */,
+				B10000000000000000000005 /* DatabaseService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		D10000000000000000000005 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				B10000000000000000000006 /* MainViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		D10000000000000000000006 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				D10000000000000000000007 /* Components */,
+				B10000000000000000000007 /* MainView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		D10000000000000000000007 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				B10000000000000000000008 /* PianoKeyboardView.swift */,
+				B10000000000000000000009 /* TimelineView.swift */,
+				B1000000000000000000000A /* NotesGridView.swift */,
+				B1000000000000000000000B /* UIComponents.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		D10000000000000000000008 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				B10000000000000000000101 /* A0.mp3 */,
+				B10000000000000000000102 /* A1.mp3 */,
+				B10000000000000000000103 /* A2.mp3 */,
+				B10000000000000000000104 /* A3.mp3 */,
+				B10000000000000000000105 /* A4.mp3 */,
+				B10000000000000000000106 /* A5.mp3 */,
+				B10000000000000000000107 /* A6.mp3 */,
+				B10000000000000000000108 /* A7.mp3 */,
+				B10000000000000000000109 /* Ab1.mp3 */,
+				B1000000000000000000010A /* Ab2.mp3 */,
+				B1000000000000000000010B /* Ab3.mp3 */,
+				B1000000000000000000010C /* Ab4.mp3 */,
+				B1000000000000000000010D /* Ab5.mp3 */,
+				B1000000000000000000010E /* Ab6.mp3 */,
+				B1000000000000000000010F /* Ab7.mp3 */,
+				B10000000000000000000110 /* B0.mp3 */,
+				B10000000000000000000111 /* B1.mp3 */,
+				B10000000000000000000112 /* B2.mp3 */,
+				B10000000000000000000113 /* B3.mp3 */,
+				B10000000000000000000114 /* B4.mp3 */,
+				B10000000000000000000115 /* B5.mp3 */,
+				B10000000000000000000116 /* B6.mp3 */,
+				B10000000000000000000117 /* B7.mp3 */,
+				B10000000000000000000118 /* Bb0.mp3 */,
+				B10000000000000000000119 /* Bb1.mp3 */,
+				B1000000000000000000011A /* Bb2.mp3 */,
+				B1000000000000000000011B /* Bb3.mp3 */,
+				B1000000000000000000011C /* Bb4.mp3 */,
+				B1000000000000000000011D /* Bb5.mp3 */,
+				B1000000000000000000011E /* Bb6.mp3 */,
+				B1000000000000000000011F /* Bb7.mp3 */,
+				B10000000000000000000120 /* C1.mp3 */,
+				B10000000000000000000121 /* C2.mp3 */,
+				B10000000000000000000122 /* C3.mp3 */,
+				B10000000000000000000123 /* C4.mp3 */,
+				B10000000000000000000124 /* C5.mp3 */,
+				B10000000000000000000125 /* C6.mp3 */,
+				B10000000000000000000126 /* C7.mp3 */,
+				B10000000000000000000127 /* C8.mp3 */,
+				B10000000000000000000128 /* D1.mp3 */,
+				B10000000000000000000129 /* D2.mp3 */,
+				B1000000000000000000012A /* D3.mp3 */,
+				B1000000000000000000012B /* D4.mp3 */,
+				B1000000000000000000012C /* D5.mp3 */,
+				B1000000000000000000012D /* D6.mp3 */,
+				B1000000000000000000012E /* D7.mp3 */,
+				B1000000000000000000012F /* Db1.mp3 */,
+				B10000000000000000000130 /* Db2.mp3 */,
+				B10000000000000000000131 /* Db3.mp3 */,
+				B10000000000000000000132 /* Db4.mp3 */,
+				B10000000000000000000133 /* Db5.mp3 */,
+				B10000000000000000000134 /* Db6.mp3 */,
+				B10000000000000000000135 /* Db7.mp3 */,
+				B10000000000000000000136 /* Db8.mp3 */,
+				B10000000000000000000137 /* E1.mp3 */,
+				B10000000000000000000138 /* E2.mp3 */,
+				B10000000000000000000139 /* E3.mp3 */,
+				B1000000000000000000013A /* E4.mp3 */,
+				B1000000000000000000013B /* E5.mp3 */,
+				B1000000000000000000013C /* E6.mp3 */,
+				B1000000000000000000013D /* E7.mp3 */,
+				B1000000000000000000013E /* Eb1.mp3 */,
+				B1000000000000000000013F /* Eb2.mp3 */,
+				B10000000000000000000140 /* Eb3.mp3 */,
+				B10000000000000000000141 /* Eb4.mp3 */,
+				B10000000000000000000142 /* Eb5.mp3 */,
+				B10000000000000000000143 /* Eb6.mp3 */,
+				B10000000000000000000144 /* Eb7.mp3 */,
+				B10000000000000000000145 /* F1.mp3 */,
+				B10000000000000000000146 /* F2.mp3 */,
+				B10000000000000000000147 /* F3.mp3 */,
+				B10000000000000000000148 /* F4.mp3 */,
+				B10000000000000000000149 /* F5.mp3 */,
+				B1000000000000000000014A /* F6.mp3 */,
+				B1000000000000000000014B /* F7.mp3 */,
+				B1000000000000000000014C /* G1.mp3 */,
+				B1000000000000000000014D /* G2.mp3 */,
+				B1000000000000000000014E /* G3.mp3 */,
+				B1000000000000000000014F /* G4.mp3 */,
+				B10000000000000000000150 /* G5.mp3 */,
+				B10000000000000000000151 /* G6.mp3 */,
+				B10000000000000000000152 /* G7.mp3 */,
+				B10000000000000000000153 /* Gb1.mp3 */,
+				B10000000000000000000154 /* Gb2.mp3 */,
+				B10000000000000000000155 /* Gb3.mp3 */,
+				B10000000000000000000156 /* Gb4.mp3 */,
+				B10000000000000000000157 /* Gb5.mp3 */,
+				B10000000000000000000158 /* Gb6.mp3 */,
+				B10000000000000000000159 /* Gb7.mp3 */,
+			);
+			name = Resources;
+			sourceTree = "<group>";
+		};
+		D10000000000000000000009 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				B1000000000000000000000D /* DiscoverMusic.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		E10000000000000000000001 /* DiscoverMusic */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F10000000000000000000003 /* Build configuration list for PBXNativeTarget "DiscoverMusic" */;
+			buildPhases = (
+				E10000000000000000000002 /* Sources */,
+				C10000000000000000000001 /* Frameworks */,
+				E10000000000000000000003 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = DiscoverMusic;
+			productName = DiscoverMusic;
+			productReference = B1000000000000000000000D /* DiscoverMusic.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		E10000000000000000000010 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					E10000000000000000000001 = {
+						CreatedOnToolsVersion = 15.0;
+					};
+				};
+			};
+			buildConfigurationList = F10000000000000000000001 /* Build configuration list for PBXProject "DiscoverMusic" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = D10000000000000000000001;
+			productRefGroup = D10000000000000000000009 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				E10000000000000000000001 /* DiscoverMusic */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		E10000000000000000000003 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A1000000000000000000000C /* Assets.xcassets in Resources */,
+				A10000000000000000000101 /* A0.mp3 in Resources */,
+				A10000000000000000000102 /* A1.mp3 in Resources */,
+				A10000000000000000000103 /* A2.mp3 in Resources */,
+				A10000000000000000000104 /* A3.mp3 in Resources */,
+				A10000000000000000000105 /* A4.mp3 in Resources */,
+				A10000000000000000000106 /* A5.mp3 in Resources */,
+				A10000000000000000000107 /* A6.mp3 in Resources */,
+				A10000000000000000000108 /* A7.mp3 in Resources */,
+				A10000000000000000000109 /* Ab1.mp3 in Resources */,
+				A1000000000000000000010A /* Ab2.mp3 in Resources */,
+				A1000000000000000000010B /* Ab3.mp3 in Resources */,
+				A1000000000000000000010C /* Ab4.mp3 in Resources */,
+				A1000000000000000000010D /* Ab5.mp3 in Resources */,
+				A1000000000000000000010E /* Ab6.mp3 in Resources */,
+				A1000000000000000000010F /* Ab7.mp3 in Resources */,
+				A10000000000000000000110 /* B0.mp3 in Resources */,
+				A10000000000000000000111 /* B1.mp3 in Resources */,
+				A10000000000000000000112 /* B2.mp3 in Resources */,
+				A10000000000000000000113 /* B3.mp3 in Resources */,
+				A10000000000000000000114 /* B4.mp3 in Resources */,
+				A10000000000000000000115 /* B5.mp3 in Resources */,
+				A10000000000000000000116 /* B6.mp3 in Resources */,
+				A10000000000000000000117 /* B7.mp3 in Resources */,
+				A10000000000000000000118 /* Bb0.mp3 in Resources */,
+				A10000000000000000000119 /* Bb1.mp3 in Resources */,
+				A1000000000000000000011A /* Bb2.mp3 in Resources */,
+				A1000000000000000000011B /* Bb3.mp3 in Resources */,
+				A1000000000000000000011C /* Bb4.mp3 in Resources */,
+				A1000000000000000000011D /* Bb5.mp3 in Resources */,
+				A1000000000000000000011E /* Bb6.mp3 in Resources */,
+				A1000000000000000000011F /* Bb7.mp3 in Resources */,
+				A10000000000000000000120 /* C1.mp3 in Resources */,
+				A10000000000000000000121 /* C2.mp3 in Resources */,
+				A10000000000000000000122 /* C3.mp3 in Resources */,
+				A10000000000000000000123 /* C4.mp3 in Resources */,
+				A10000000000000000000124 /* C5.mp3 in Resources */,
+				A10000000000000000000125 /* C6.mp3 in Resources */,
+				A10000000000000000000126 /* C7.mp3 in Resources */,
+				A10000000000000000000127 /* C8.mp3 in Resources */,
+				A10000000000000000000128 /* D1.mp3 in Resources */,
+				A10000000000000000000129 /* D2.mp3 in Resources */,
+				A1000000000000000000012A /* D3.mp3 in Resources */,
+				A1000000000000000000012B /* D4.mp3 in Resources */,
+				A1000000000000000000012C /* D5.mp3 in Resources */,
+				A1000000000000000000012D /* D6.mp3 in Resources */,
+				A1000000000000000000012E /* D7.mp3 in Resources */,
+				A1000000000000000000012F /* Db1.mp3 in Resources */,
+				A10000000000000000000130 /* Db2.mp3 in Resources */,
+				A10000000000000000000131 /* Db3.mp3 in Resources */,
+				A10000000000000000000132 /* Db4.mp3 in Resources */,
+				A10000000000000000000133 /* Db5.mp3 in Resources */,
+				A10000000000000000000134 /* Db6.mp3 in Resources */,
+				A10000000000000000000135 /* Db7.mp3 in Resources */,
+				A10000000000000000000136 /* Db8.mp3 in Resources */,
+				A10000000000000000000137 /* E1.mp3 in Resources */,
+				A10000000000000000000138 /* E2.mp3 in Resources */,
+				A10000000000000000000139 /* E3.mp3 in Resources */,
+				A1000000000000000000013A /* E4.mp3 in Resources */,
+				A1000000000000000000013B /* E5.mp3 in Resources */,
+				A1000000000000000000013C /* E6.mp3 in Resources */,
+				A1000000000000000000013D /* E7.mp3 in Resources */,
+				A1000000000000000000013E /* Eb1.mp3 in Resources */,
+				A1000000000000000000013F /* Eb2.mp3 in Resources */,
+				A10000000000000000000140 /* Eb3.mp3 in Resources */,
+				A10000000000000000000141 /* Eb4.mp3 in Resources */,
+				A10000000000000000000142 /* Eb5.mp3 in Resources */,
+				A10000000000000000000143 /* Eb6.mp3 in Resources */,
+				A10000000000000000000144 /* Eb7.mp3 in Resources */,
+				A10000000000000000000145 /* F1.mp3 in Resources */,
+				A10000000000000000000146 /* F2.mp3 in Resources */,
+				A10000000000000000000147 /* F3.mp3 in Resources */,
+				A10000000000000000000148 /* F4.mp3 in Resources */,
+				A10000000000000000000149 /* F5.mp3 in Resources */,
+				A1000000000000000000014A /* F6.mp3 in Resources */,
+				A1000000000000000000014B /* F7.mp3 in Resources */,
+				A1000000000000000000014C /* G1.mp3 in Resources */,
+				A1000000000000000000014D /* G2.mp3 in Resources */,
+				A1000000000000000000014E /* G3.mp3 in Resources */,
+				A1000000000000000000014F /* G4.mp3 in Resources */,
+				A10000000000000000000150 /* G5.mp3 in Resources */,
+				A10000000000000000000151 /* G6.mp3 in Resources */,
+				A10000000000000000000152 /* G7.mp3 in Resources */,
+				A10000000000000000000153 /* Gb1.mp3 in Resources */,
+				A10000000000000000000154 /* Gb2.mp3 in Resources */,
+				A10000000000000000000155 /* Gb3.mp3 in Resources */,
+				A10000000000000000000156 /* Gb4.mp3 in Resources */,
+				A10000000000000000000157 /* Gb5.mp3 in Resources */,
+				A10000000000000000000158 /* Gb6.mp3 in Resources */,
+				A10000000000000000000159 /* Gb7.mp3 in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		E10000000000000000000002 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10000000000000000000001 /* DiscoverMusicApp.swift in Sources */,
+				A10000000000000000000002 /* PianoNote.swift in Sources */,
+				A10000000000000000000003 /* NoteSequence.swift in Sources */,
+				A10000000000000000000004 /* AudioService.swift in Sources */,
+				A10000000000000000000005 /* DatabaseService.swift in Sources */,
+				A10000000000000000000006 /* MainViewModel.swift in Sources */,
+				A10000000000000000000007 /* MainView.swift in Sources */,
+				A10000000000000000000008 /* PianoKeyboardView.swift in Sources */,
+				A10000000000000000000009 /* TimelineView.swift in Sources */,
+				A1000000000000000000000A /* NotesGridView.swift in Sources */,
+				A1000000000000000000000B /* UIComponents.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		F10000000000000000000011 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		F10000000000000000000012 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		F10000000000000000000013 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.discovermusic.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		F10000000000000000000014 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.discovermusic.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		F10000000000000000000001 /* Build configuration list for PBXProject "DiscoverMusic" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F10000000000000000000011 /* Debug */,
+				F10000000000000000000012 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F10000000000000000000003 /* Build configuration list for PBXNativeTarget "DiscoverMusic" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F10000000000000000000013 /* Debug */,
+				F10000000000000000000014 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = E10000000000000000000010 /* Project object */;
+}
